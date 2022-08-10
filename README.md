@@ -7,6 +7,7 @@
 - [SpringMVC](SpringMVC笔记.md)
 - [MyBaits](MyBatis.md)
 - [MyBaitsPlus](MyBatisPlus.md)
+- [SSM整合](SSM整合.md)
 
 
 ## 参考资料
