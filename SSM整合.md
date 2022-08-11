@@ -7,6 +7,7 @@ SSM（SpringMVC+Spring+MyBatis）是目前市场上最流行的开发web项目�
 mysql、jdbc、html、tomcat、Servlet、Thymeleaf、maven...
 
 ### 大纲
+![1660106692788](image/SSM整合/1660106692788.png)
 ![1660006124447](image/SSM整合/1660006124447.png)
 
 

@@ -3,11 +3,11 @@
 
 - [Maven](Maven.md)
 - [Gradle](Gradle.md)
-- [Spring5](Spring5.md)
-- [SpringMVC](SpringMVC笔记.md)
-- [MyBaits](MyBatis.md)
-- [MyBaitsPlus](MyBatisPlus.md)
 - [SSM整合](SSM整合.md)
+  - [MyBaits](MyBatis.md)
+  - [Spring](Spring.md)
+  - [SpringMVC](SpringMVC.md)
+- [MyBaitsPlus](MyBatisPlus.md)
 
 
 ## 参考资料

@@ -45,8 +45,20 @@ iBatis一词来源于“internet”和“abatis”的组合，是一个基于Jav
 ## 1、开发环境
 - IDE：idea 2019.2
 - 构建工具：maven 3.5.4
-- MySQL版本：MySQL 5.7
+- MySQL版本：MySQL 8
 - MyBatis版本：MyBatis 3.5.7
+
+> MySQL不同版本的注意事项
+> 
+> 1、驱动类driver-class-name
+> - MySQL 5版本使用jdbc5驱动，驱动类使用：com.mysql.jdbc.Driver
+> - MySQL 8版本使用jdbc8驱动，驱动类使用：com.mysql.cj.jdbc.Driver
+> 2、连接地址url
+> - MySQL 5版本的url：jdbc:mysql://localhost:3306/ssm
+> - MySQL 8版本的url：jdbc:mysql://localhost:3306/ssm?serverTimezone=UTC
+> 否则运行测试用例报告如下错误：
+> java.sql.SQLException: The server time zone value 'ÖÐ¹ú±ê×¼Ê±¼ä' is unrecognized or represents more
+
 
 
 ## 2、创建maven工程
@@ -72,7 +84,7 @@ iBatis一词来源于“internet”和“abatis”的组合，是一个基于Jav
     <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>5.1.3</version>
+        <version>8.0.16</version>
     </dependency>
 </dependencies>
 ```
@@ -94,9 +106,9 @@ iBatis一词来源于“internet”和“abatis”的组合，是一个基于Jav
         <environment id="development">
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
-                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
                 <property name="url"
-                value="jdbc:mysql://localhost:3306/MyBatis"/>
+                value="jdbc:mysql://localhost:3306/ssm?serverTimezone=UTC"/>
                 <property name="username" value="root"/>
                 <property name="password" value="123456"/>
             </dataSource>
@@ -242,6 +254,12 @@ System.out.println("结果："+result);
         PUBLIC "-//MyBatis.org//DTD Config 3.0//EN"
         "http://MyBatis.org/dtd/MyBatis-3-config.dtd">
 <configuration>
+<!--
+    MyBatis核心配置文件中，标签的顺序：
+    properties?,settings?,typeAliases?,typeHandlers?,
+    objectFactory?,objectWrapperFactory?,reflectorFactory?,
+    plugins?,environments?,databaseIdProvider?,mappers?
+-->
     <!--引入properties文件，此时就可以${属性名}的方式访问属性值-->
     <properties resource="jdbc.properties"></properties>
     <settings>
@@ -267,13 +285,13 @@ System.out.println("结果："+result);
         属性：
             default：设置默认使用的环境的id
     -->
-    <environments default="mysql_test">
+    <environments default="development">
         <!--
             environment：设置具体的连接数据库的环境信息
             属性：
                 id：设置环境的唯一标识，可通过environments标签中的default设置某一个环境的id，表示默认使用的环境
         -->
-        <environment id="mysql_test">
+        <environment id="development">
             <!--
                 transactionManager：设置事务管理方式
                 属性：
@@ -301,6 +319,16 @@ System.out.println("结果："+result);
                 <property name="password" value="${jdbc.password}"/>
             </dataSource>
         </environment>
+        <environment id="test">
+        <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/ssm?serverTimezone=UTC"/>
+                <property name="username" value="root"/>
+                <property name="password" value="123456"/>
+            </dataSource>
+        </environment>
+
     </environments>
     <!--引入映射文件-->
     <mappers>
@@ -536,6 +564,8 @@ List<User> getUserList();
 <select id="getUserList" resultType="User">select * from t_user</select>
 ```
 
+> 当查询的数据为多条时，不能使用实体类作为返回值，否则会抛出异常TooManyResultsException；但是若查询的数据只有一条，可以使用实体类或集合作为返回值
+
 
 ## 3、查询单个数据
 ```java
@@ -605,12 +635,15 @@ Map<String, Object> getAllUserToMap();
 ```xml
 <!--Map<String, Object> getAllUserToMap();-->
 <select id="getAllUserToMap" resultType="map">select * from t_user</select>
+```
+
 结果：
-<!--{
-1={password=123456, sex=男, id=1, age=23, username=admin},
-2={password=123456, sex=男, id=2, age=23, username=张三},
-3={password=123456, sex=男, id=3, age=23, username=张三}
-}-->
+```js
+{
+    1={password=123456, sex=男, id=1, age=23, username=admin},
+    2={password=123456, sex=男, id=2, age=23, username=张三},
+    3={password=123456, sex=男, id=3, age=23, username=张三}
+}
 ```
 
 
@@ -751,6 +784,7 @@ select id,user_name,password,age,sex from t_user where user_name like concat('%'
 
 
 ## 2、多对一映射处理
+> 场景模拟：
 > 查询员工信息以及员工所对应的部门信息
 
 ### a>级联属性赋值
@@ -776,8 +810,8 @@ select id,user_name,password,age,sex from t_user where user_name like concat('%'
     <result column="sex" property="sex"></result>
     <!--
         association:处理多对一的映射关系
-        property:需要处理多对的映射关系的属性名
-        javaType:该属性的类型
+            property:需要处理多对的映射关系的属性名
+            javaType:该属性的类型
     -->
     <association property="dept" javaType="Dept">
         <id column="did" property="did"></id>
@@ -792,10 +826,10 @@ select id,user_name,password,age,sex from t_user where user_name like concat('%'
 1. 查询员工信息
     ```java
     /**
-    * 通过分步查询查询员工信息
-    * @param eid
-    * @return
-    */
+     * 通过分步查询查询员工信息
+     * @param eid
+     * @return
+     */
     Emp getEmpByStep(@Param("eid") int eid);
     ```
 
@@ -1191,12 +1225,30 @@ d>查询的数据所转换的实体类类型必须实现序列化的接口
 
 ### a>添加依赖和插件
 ```xml
-<!-- 依赖MyBatis核心包 -->
 <dependencies>
+    <!-- 依赖MyBatis核心包 -->
     <dependency>
         <groupId>org.mybatis</groupId>
         <artifactId>mybatis</artifactId>
         <version>3.5.7</version>
+    </dependency>
+    <!-- junit测试 -->
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+        <scope>test</scope>
+    </dependency>
+    <!-- log4j日志 -->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.17</version>
+    </dependency>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>8.0.16</version>
     </dependency>
 </dependencies>
 
@@ -1217,17 +1269,11 @@ d>查询的数据所转换的实体类类型必须实现序列化的接口
                     <artifactId>mybatis-generator-core</artifactId>
                     <version>1.3.2</version>
                 </dependency>
-                <!-- 数据库连接池 -->
-                <dependency>
-                    <groupId>com.mchange</groupId>
-                    <artifactId>c3p0</artifactId>
-                    <version>0.9.2</version>
-                </dependency>
                 <!-- MySQL驱动 -->
                 <dependency>
                     <groupId>mysql</groupId>
                     <artifactId>mysql-connector-java</artifactId>
-                    <version>5.1.8</version>
+                    <version>8.0.16</version>
                 </dependency>
             </dependencies>
         </plugin>
@@ -1252,8 +1298,8 @@ d>查询的数据所转换的实体类类型必须实现序列化的接口
     <context id="DB2Tables" targetRuntime="MyBatis3">
         <!-- 数据库的连接信息 -->
         <jdbcConnection 
-                driverClass="com.mysql.jdbc.Driver" 
-                connectionURL="jdbc:mysql://localhost:3306/mybatis" 
+                driverClass="com.mysql.cj.jdbc.Driver" 
+                connectionURL="jdbc:mysql://localhost:3306/mybatiss?serverTimezone=UTC" 
                 userId="root" 
                 password="123456">
         </jdbcConnection>
@@ -1291,23 +1337,32 @@ d>查询的数据所转换的实体类类型必须实现序列化的接口
 ## 2、QBC查询
 ```java
 @Test
-public void testMBG() throws IOException {
-    InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
-    SqlSession sqlSession = new SqlSessionFactoryBuilder().build(is).openSession(true);
-    EmpMapper mapper = sqlSession.getMapper(EmpMapper.class);
-    EmpExample empExample = new EmpExample();
-    //创建条件对象，通过andXXX方法为SQL添加查询添加，每个条件之间是and关系
-    empExample.createCriteria().andEnameLike("a").andAgeGreaterThan(20).andDidIsNotNull();
-    //将之前添加的条件通过or拼接其他条件
-    empExample.or().andSexEqualTo("男");
-    List<Emp> list = mapper.selectByExample(empExample);
-    list.forEach(System.out::println);
+public void testMBG(){
+    try {
+        InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(is);
+        SqlSession sqlSession = sqlSessionFactory.openSession(true);
+        EmpMapper mapper = sqlSession.getMapper(EmpMapper.class);
+        //查询所有数据
+        List<Emp> list = mapper.selectByExample(null);
+        list.forEach(emp -> System.out.println(emp));
+        //根据条件查询
+        EmpExample example = new EmpExample();
+        example.createCriteria().andEmpNameEqualTo("张三").andAgeGreaterThanOrEqualTo(20);
+        example.or().andDidIsNotNull();
+        List<Emp> list = mapper.selectByExample(example);
+        list.forEach(emp -> System.out.println(emp));
+        mapper.updateByPrimaryKeySelective(new Emp(1,"admin",22,null,"456@qq.com",3));
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
 }
 ```
 
 
 
 # 十二、分页插件
+![1660123399206](image/MyBatis/1660123399206.png)
 
 ## 1、分页插件使用步骤
 
