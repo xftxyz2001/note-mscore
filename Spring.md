@@ -104,9 +104,11 @@ BeanFactory 的子接口，提供了更多高级特性。面向 Spring 的使用
 #### ③创建类HelloWorld
 ```java
 public class HelloWorld {
-    public void sayHello(){
-        System.out.println("helloworld");
+
+    public void sayHello() {
+        System.out.println("hello,spring");
     }
+
 }
 ```
 
@@ -115,24 +117,36 @@ public class HelloWorld {
 
 ![1660197337273](image/Spring/1660197337273.png)
 
+> 关于配置文件命名：
+> 在此处我们使用Spring时，是自己指定的文件名。
+> 在SSM整合时，Spring的配置文件默认名为：ApplicationContext.xml
+
 #### ⑤在Spring的配置文件中配置bean
 ```xml
-<!--
-    配置HelloWorld所对应的bean，即将HelloWorld的对象交给Spring的IOC容器管理
-    通过bean标签配置IOC容器所管理的bean
-    属性：
-        id：设置bean的唯一标识
-        class：设置bean所对应类型的全类名
--->
-<bean id="helloworld" class="com.atguigu.spring.bean.HelloWorld"></bean>
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--
+        bean：配置一个bean对象，将对象交给IOC容器管理
+        属性：
+            id：设置bean的唯一标识，不能重复
+            class：设置bean所对应类型的全类名
+        -->
+        <!-- 配置HelloWorld所对应的bean，即将HelloWorld的对象交给Spring的IOC容器管理 -->
+    <bean id="helloworld" class="com.atguigu.spring.pojo.HelloWorld"></bean>
+</beans>
 ```
 
 #### ⑥创建测试类测试
 ```java
 @Test
-public void testHelloWorld(){
-    ApplicationContext ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-    HelloWorld helloworld = (HelloWorld) ac.getBean("helloworld");
+public void test() {
+    // 获取IOC容器
+    ApplicationContext ioc = new ClassPathXmlApplicationContext("applicationContext.xml");
+    // 获取IOC容器中的bean
+    HelloWorld helloworld = (HelloWorld) ioc.getBean("helloworld");
     helloworld.sayHello();
 }
 ```
@@ -142,87 +156,163 @@ public void testHelloWorld(){
 
 #### ⑧注意
 Spring 底层默认通过反射技术调用组件类的无参构造器来创建组件对象，这一点需要注意。如果在需要无参构造器时，没有无参构造器，则会抛出下面的异常：
-> org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'helloworld' defined in class path resource `[applicationContext.xml]`: Instantiation of bean failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate `[com.atguigu.spring.bean.HelloWorld]`: No default constructor found; nested exception is java.lang.NoSuchMethodException: `com.atguigu.spring.bean.HelloWorld.<init>()`
+> org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'helloworld' defined in class path resource `[applicationContext.xml]`: Instantiation of bean failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate `[com.atguigu.spring.pojo.HelloWorld]`: No default constructor found; nested exception is java.lang.NoSuchMethodException: `com.atguigu.spring.pojo.HelloWorld.[init]()`
 
 ### 2、实验二：获取bean
-
-#### ①方式一：根据id获取
-由于 id 属性指定了 bean 的唯一标识，所以根据 bean 标签的 id 属性可以精确获取到一个组件对象。
-上个实验中我们使用的就是这种方式。
-
-#### ②方式二：根据类型获取
-```java
-@Test
-public void testHelloWorld(){
-    ApplicationContext ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-    HelloWorld bean = ac.getBean(HelloWorld.class);
-    bean.sayHello();
-}
-```
-
-#### ③方式三：根据id和类型
-```java
-@Test
-public void testHelloWorld(){
-    ApplicationContext ac = new ClassPathXmlApplicationContext("applicationContext.xml");
-    HelloWorld bean = ac.getBean("helloworld", HelloWorld.class);
-    bean.sayHello();
-}
-```
-
-#### ④注意
-当根据类型获取bean时，要求IOC容器中指定类型的bean有且只能有一个
-当IOC容器中一共配置了两个：
-```xml
-<bean id="helloworldOne" class="com.atguigu.spring.bean.HelloWorld"></bean>
-<bean id="helloworldTwo" class="com.atguigu.spring.bean.HelloWorld"></bean>
-```
-
-根据类型获取时会抛出异常：
-> org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type 'com.atguigu.spring.bean.HelloWorld' available: expected single matching bean but found 2: helloworldOne,helloworldTwo
-
-#### ⑤扩展
-如果组件类实现了接口，根据接口类型可以获取 bean 吗？
-> 可以，前提是bean唯一
-
-如果一个接口有多个实现类，这些实现类都配置了 bean，根据接口类型可以获取 bean 吗？
-> 不行，因为bean不唯一
-
-#### ⑥结论
-根据类型来获取bean时，在满足bean唯一性的前提下，其实只是看：『对象 instanceof 指定的类型』的返回结果，只要返回的是true就可以认定为和类型匹配，能够获取到。
-
-### 3、实验三：依赖注入之setter注入
 
 #### ①创建学生类Student
 ```java
 public class Student {
-    private Integer id;
-    private String name;
+
+    private Integer sid;
+
+    private String sname;
+
     private Integer age;
-    private String sex;
-    // getter, setter...
+
+    private String gender;
+
+    public Student() {
+    }
+
+    public Integer getSid() {
+        return sid;
+    }
+
+    public void setSid(Integer sid) {
+        this.sid = sid;
+    }
+
+    public String getSname() {
+        return sname;
+    }
+
+    public void setSname(String sname) {
+        this.sname = sname;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "sid=" + sid +
+                ", sname='" + sname + '\'' +
+                ", age=" + age +
+                ", gender='" + gender + '\'' +
+                '}';
+    }
+}
 ```
 
-#### ②配置bean时为属性赋值
+#### ②方式一：根据id获取
+由于 id 属性指定了 bean 的唯一标识，所以根据 bean 标签的 id 属性可以精确获取到一个组件对象。
+上个实验中我们使用的就是这种方式。
+
+#### ③方式二：根据类型获取（常用）
 ```xml
-<bean id="studentOne" class="com.atguigu.spring.bean.Student">
-    <!-- property标签：通过组件类的setXxx()方法给组件对象设置属性 -->
-    <!-- name属性：指定属性名（这个属性名是getXxx()、setXxx()方法定义的，和成员变量无关）-->
-    <!-- value属性：指定属性值 -->
-    <property name="id" value="1001"></property>
-    <property name="name" value="张三"></property>
+<bean id="student1" class="com.atguigu.spring.pojo.Student"></bean>
+```
+
+```java
+@Test
+public void testGetBeanByType() {
+    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-ioc.xml");
+    Student student = ac.getBean(Student.class);
+}
+```
+
+#### ④方式三：根据id和类型
+```xml
+<bean id="student2" class="com.atguigu.spring.pojo.Student"></bean>
+```
+
+```java
+@Test
+public void testGetBeanByIdAndType() {
+    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-ioc.xml");
+    Student student2 = ac.getBean("student2", Student.class);
+}
+```
+
+#### ⑤注意
+当根据类型获取bean时，要求IOC容器中指定类型的bean有且只能有一个
+当IOC容器中一共配置了两个：
+```xml
+<bean id="student1" class="com.atguigu.spring.pojo.Student"></bean>
+<bean id="student2" class="com.atguigu.spring.pojo.Student"></bean>
+```
+
+根据类型获取时会抛出异常：
+> org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type 'com.atguigu.spring.pojo.Student' available: expected single matching bean but found 2: student1,student2
+
+当IOC容器中没有配置该类型的Bean，
+根据类型获取时会抛出异常：
+> org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type 'com.atguigu.spring.pojo.Student' available
+
+#### ⑥扩展
+如果组件类实现了接口，根据接口类型可以获取 bean 吗？
+> 可以，前提是bean唯一
+> 注意：在xml中不能为接口配置bean，接口不能实例化。
+
+测试，暂时将student2注释：
+创建空接口Person并让Student类实现。
+```java
+@Test
+public void testGetBeanByInterface() {
+    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-ioc.xml");
+    Person person = ac.getBean(Person.class);
+}
+```
+
+如果一个接口有多个实现类，这些实现类都配置了 bean，根据接口类型可以获取 bean 吗？
+> 不行，因为bean不唯一
+
+测试，将student2的注释打开：
+再次运行上面的代码报错。
+
+#### ⑦结论
+根据类型来获取bean时，在满足bean唯一性的前提下，其实只是看：『对象 instanceof 指定的类型』的返回结果，只要返回的是true就可以认定为和类型匹配，能够获取到。
+即通过bean的类型、bean所继承的类的类型、bean所实现的接口的类型都可以获取bean。
+
+### 3、实验三：依赖注入之setter注入（常用）
+
+#### ①配置bean时为属性赋值
+```xml
+<bean id="student2" class="com.atguigu.spring.pojo.Student">
+    <!-- 
+        property标签：通过组件类的setXxx()方法给组件对象设置属性
+            name属性：指定属性名（这个属性名是getXxx()、setXxx()方法定义的，和成员变量无关）
+            value属性：指定属性值
+    -->
+    <property name="sid" value="1001"></property>
+    <property name="sname" value="张三"></property>
     <property name="age" value="23"></property>
-    <property name="sex" value="男"></property>
+    <property name="gender" value="男"></property>
 </bean>
 ```
 
-#### ③测试
+#### ②测试
 ```java
 @Test
-public void testDIBySet(){
-    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-di.xml");
-    Student studentOne = ac.getBean("studentOne", Student.class);
-    System.out.println(studentOne);
+public void testDIBySet() {
+    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-ioc.xml");
+    Student student = ac.getBean("student2", Student.class);
+    System.out.println(student);
 }
 ```
 
@@ -230,37 +320,90 @@ public void testDIBySet(){
 
 #### ①在Student类中添加有参构造
 ```java
-public Student(Integer id, String name, Integer age, String sex) {
-    this.id = id;
-    this.name = name;
+public Student(Integer sid, String sname, Integer age, String gender) {
+    this.sid = sid;
+    this.sname = sname;
     this.age = age;
-    this.sex = sex;
+    this.gender = gender;
 }
 ```
 
 #### ②配置bean
 ```xml
-<bean id="studentTwo" class="com.atguigu.spring.bean.Student">
+<bean id="student3" class="com.atguigu.spring.pojo.Student">
     <constructor-arg value="1002"></constructor-arg>
     <constructor-arg value="李四"></constructor-arg>
-    <constructor-arg value="33"></constructor-arg>
+    <constructor-arg value="24"></constructor-arg>
     <constructor-arg value="女"></constructor-arg>
 </bean>
 ```
 
+#### ③测试
+```java
+@Test
+public void testDIByConstructor() {
+    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-ioc.xml");
+    Student student = ac.getBean("student3", Student.class);
+    System.out.println(student);
+}
+```
+
 > 注意：
+> - 这里按照构造器参数个数进行匹配，然后按constructor-arg标签的顺序进行赋值。
+> - 当存在相同参数个数及可转化的类型的多个构造器，我们不确定容器会调用哪一个构造器创建对象。
+
+如，在Student类中添加如下内容：
+```java
+private Double score;
+
+public Student(Integer sid, String sname, String gender, Double score) {
+    this.sid = sid;
+    this.sname = sname;
+    this.gender = gender;
+    this.score = score;
+}
+
+public Double getScore() {
+    return score;
+}
+
+public void setScore(Double score) {
+    this.score = score;
+}
+```
+
+```java
+// 调整之前的构造方法参数顺序
+public Student(Integer sid, String sname, String gender, Integer age) {
+    this.sid = sid;
+    this.sname = sname;
+    this.age = age;
+    this.gender = gender;
+}
+```
+
+```xml
+<bean id="student3" class="com.atguigu.spring.pojo.Student">
+    <constructor-arg value="1002"></constructor-arg>
+    <constructor-arg value="李四"></constructor-arg>
+    <constructor-arg value="女"></constructor-arg>
+    <constructor-arg value="24"></constructor-arg>
+</bean>
+```
+
+测试发现，匹配到了类中声明未知靠后的构造器。
+
 > constructor-arg标签还有两个属性可以进一步描述构造器参数：
 > - index属性：指定参数所在位置的索引（从0开始）
 > - name属性：指定参数名
 
-#### ③测试
-```java
-@Test
-public void testDIBySet(){
-    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-di.xml");
-    Student studentOne = ac.getBean("studentTwo", Student.class);
-    System.out.println(studentOne);
-}
+```xml
+<bean id="student3" class="com.atguigu.spring.pojo.Student">
+    <constructor-arg value="1002"></constructor-arg>
+    <constructor-arg value="李四"></constructor-arg>
+    <constructor-arg value="女"></constructor-arg>
+    <constructor-arg value="24" name="age"></constructor-arg>
+</bean>
 ```
 
 ### 5、实验五：特殊值处理
@@ -273,71 +416,85 @@ public void testDIBySet(){
 
 ```xml
 <!-- 使用value属性给bean的属性赋值时，Spring会把value属性的值看做字面量 -->
-<property name="name" value="张三"/>
+<property name="sname" value="王五"></property>
 ```
 
 #### ②null值
 ```xml
-<property name="name">
+<property name="sname">
     <null />
 </property>
 ```
 
 > 注意：
 > ```xml
-> <property name="name" value="null"></property>
+> <property name="sname" value="null"></property>
 > ```
 > 以上写法，为name所赋的值是字符串null
 
 #### ③xml实体
 ```xml
-<!-- 小于号在XML文档中用来定义标签的开始，不能随便使用 -->
+<property name="sname" value="<王五>"></property>
+<!-- 小于号在XML文档中用来定义标签的开始，不能随便使用，上面的写法会报错 -->
+```
+
+```xml
 <!-- 解决方案一：使用XML实体来代替 -->
-<property name="expression" value="a &lt; b"/>
+<property name="sname" value="&lt;王五&gt;"></property>
 ```
 
 #### ④CDATA节
 ```xml
-<property name="expression">
+<property name="sname">
     <!-- 解决方案二：使用CDATA节 -->
     <!-- CDATA中的C代表Character，是文本、字符的含义，CDATA就表示纯文本数据 -->
     <!-- XML解析器看到CDATA节就知道这里是纯文本，就不会当作XML标签或属性来解析 -->
     <!-- 所以CDATA节中写什么符号都随意 -->
-    <value><![CDATA[a < b]]></value>
+    <!-- CDATA节是xml中一个特殊的标签，因此不能写在一个属性中 -->
+    <value><![CDATA[<王五>]]></value>
 </property>
 ```
 
-### 6、实验六：为类类型属性赋值
+### 6、实验六：为类（接口）类型属性赋值
 
 #### ①创建班级类Clazz
 ```java
 public class Clazz {
-    private Integer clazzId;
-    private String clazzName;
-    public Integer getClazzId() {
-        return clazzId;
-    }
-    public void setClazzId(Integer clazzId) {
-        this.clazzId = clazzId;
-    }
-    public String getClazzName() {
-        return clazzName;
-    }
-    public void setClazzName(String clazzName) {
-        this.clazzName = clazzName;
-    }
+
+    private Integer cid;
+
+    private String cname;
+
     @Override
     public String toString() {
         return "Clazz{" +
-            "clazzId=" + clazzId +
-            ", clazzName='" + clazzName + '\'' +
-            '}';
+                "cid=" + cid +
+                ", cname='" + cname + '\'' +
+                '}';
     }
+
+    public Integer getCid() {
+        return cid;
+    }
+
+    public void setCid(Integer cid) {
+        this.cid = cid;
+    }
+
+    public String getCname() {
+        return cname;
+    }
+
+    public void setCname(String cname) {
+        this.cname = cname;
+    }
+
     public Clazz() {
     }
-    public Clazz(Integer clazzId, String clazzName) {
-        this.clazzId = clazzId;
-        this.clazzName = clazzName;
+
+    public Clazz(Integer cid, String cname) {
+        this.cid = cid;
+        this.cname = cname;
     }
 }
 ```
@@ -346,9 +503,11 @@ public class Clazz {
 在Student类中添加以下代码：
 ```java
 private Clazz clazz;
+
 public Clazz getClazz() {
     return clazz;
 }
+
 public void setClazz(Clazz clazz) {
     this.clazz = clazz;
 }
@@ -357,67 +516,71 @@ public void setClazz(Clazz clazz) {
 #### ③方式一：引用外部已声明的bean
 配置Clazz类型的bean：
 ```xml
-<bean id="clazzOne" class="com.atguigu.spring.bean.Clazz">
-    <property name="clazzId" value="1111"></property>
-    <property name="clazzName" value="财源滚滚班"></property>
+<bean id="clazz1" class="com.atguigu.spring.pojo.Clazz">
+    <property name="cid" value="1111"></property>
+    <property name="cname" value="最强王者班"></property>
 </bean>
 ```
 
 为Student中的clazz属性赋值：
 ```xml
-<bean id="studentFour" class="com.atguigu.spring.bean.Student">
-    <property name="id" value="1004"></property>
-    <property name="name" value="赵六"></property>
+<bean id="student5" class="com.atguigu.spring.pojo.Student">
+    <property name="sid" value="1004"></property>
+    <property name="sname" value="赵六"></property>
     <property name="age" value="26"></property>
-    <property name="sex" value="女"></property>
+    <property name="gender" value="男"></property>
     <!-- ref属性：引用IOC容器中某个bean的id，将所对应的bean为属性赋值 -->
-    <property name="clazz" ref="clazzOne"></property>
+    <property name="clazz" ref="clazz1"></property>
 </bean>
 ```
 
-错误演示：
+错误演示1：
 ```xml
-<bean id="studentFour" class="com.atguigu.spring.bean.Student">
-    <property name="id" value="1004"></property>
-    <property name="name" value="赵六"></property>
-    <property name="age" value="26"></property>
-    <property name="sex" value="女"></property>
-    <property name="clazz" value="clazzOne"></property>
-</bean>
+<property name="clazz" value="clazz1"></property>
+```
+ 
+> 如果错把ref属性写成了value属性，会抛出异常：Initialization of bean failed; nested exception is org.springframework.beans.ConversionNotSupportedException: Failed to convert property value of type 'java.lang.String' to required type 'com.atguigu.spring.pojo.Clazz' for property 'clazz'; nested exception is java.lang.IllegalStateException: Cannot convert value of type 'java.lang.String' to required type 'com.atguigu.spring.pojo.Clazz' for property 'clazz': no matching editors or conversion strategy found
+> 意思是不能把String类型转换成我们要的Clazz类型，说明我们使用value属性时，Spring只把这个属性看做一个普通的字符串，不会认为这是一个bean的id，更不会根据它去找到bean来赋值
+
+错误演示2：
+```xml
+<property name="clazz.cid" value="2222"></property>
+<property name="clazz.cname" value="远大前程班"></property>
 ```
 
-> 如果错把ref属性写成了value属性，会抛出异常： Caused by: java.lang.IllegalStateException: Cannot convert value of type 'java.lang.String' to required type 'com.atguigu.spring.bean.Clazz' for property 'clazz': no matching editors or conversion strategy found
-> 意思是不能把String类型转换成我们要的Clazz类型，说明我们使用value属性时，Spring只把这个属性看做一个普通的字符串，不会认为这是一个bean的id，更不会根据它去找到bean来赋值
+> 级联的方式，要保证提前为clazz属性赋值或者实例化。
+> 若没有提前进行实例化，会产生：Error setting property values; nested exception is org.springframework.beans.NullValueInNestedPathException: Invalid property 'clazz' of bean class [com.atguigu.spring.pojo.Student]: Value of nested property 'clazz' is null
 
 #### ④方式二：内部bean
 ```xml
-<bean id="studentFour" class="com.atguigu.spring.bean.Student">
-    <property name="id" value="1004"></property>
-    <property name="name" value="赵六"></property>
+<bean id="student5" class="com.atguigu.spring.pojo.Student">
+    <property name="sid" value="1004"></property>
+    <property name="sname" value="赵六"></property>
     <property name="age" value="26"></property>
-    <property name="sex" value="女"></property>
+    <property name="gender" value="男"></property>
     <property name="clazz">
-        <!-- 在一个bean中再声明一个bean就是内部bean -->
-        <!-- 内部bean只能用于给属性赋值，不能在外部通过IOC容器获取，因此可以省略id属性 -->
-        <bean id="clazzInner" class="com.atguigu.spring.bean.Clazz">
-            <property name="clazzId" value="2222"></property>
-            <property name="clazzName" value="远大前程班"></property>
+        <!--内部bean：在一个bean中再声明一个bean
+            只能在当前bean的内部使用，用于给属性赋值，
+            不能直接通过IOC容器获取，因此可以省略id属性-->
+        <bean id="clazzInner" class="com.atguigu.spring.pojo.Clazz">
+            <property name="cid" value="2222"></property>
+            <property name="cname" value="远大前程班"></property>
         </bean>
     </property>
 </bean>
 ```
 
-#### ③方式三：级联属性赋值
+#### ③方式三：级联属性赋值（不常用）
 ```xml
-<bean id="studentFour" class="com.atguigu.spring.bean.Student">
-    <property name="id" value="1004"></property>
-    <property name="name" value="赵六"></property>
+<bean id="student5" class="com.atguigu.spring.pojo.Student">
+    <property name="sid" value="1004"></property>
+    <property name="sname" value="赵六"></property>
     <property name="age" value="26"></property>
-    <property name="sex" value="女"></property>
-    <!-- 一定先引用某个bean为属性赋值，才可以使用级联方式更新属性 -->
-    <property name="clazz" ref="clazzOne"></property>
-    <property name="clazz.clazzId" value="3333"></property>
-    <property name="clazz.clazzName" value="最强王者班"></property>
+    <property name="gender" value="男"></property>
+    <!-- 一定先引用某个bean为属性赋值，才可以使用级联方式更新属性，要保证提前为clazz属性赋值或者实例化 -->
+    <property name="clazz" ref="clazz1"></property>
+    <property name="clazz.cid" value="2222"></property>
+    <property name="clazz.cname" value="远大前程班"></property>
 </bean>
 ```
 
@@ -426,25 +589,26 @@ public void setClazz(Clazz clazz) {
 #### ①修改Student类
 在Student类中添加以下代码：
 ```java
-private String[] hobbies;
-public String[] getHobbies() {
-    return hobbies;
+private String[] hobby;
+
+public String[] getHobby() {
+    return hobby;
 }
-public void setHobbies(String[] hobbies) {
-    this.hobbies = hobbies;
+
+public void setHobby(String[] hobby) {
+    this.hobby = hobby;
 }
 ```
 
 #### ②配置bean
 ```xml
-<bean id="studentFour" class="com.atguigu.spring.bean.Student">
-    <property name="id" value="1004"></property>
-    <property name="name" value="赵六"></property>
+<bean id="student6" class="com.atguigu.spring.pojo.Student">
+    <property name="sid" value="1004"></property>
+    <property name="sname" value="赵六"></property>
     <property name="age" value="26"></property>
-    <property name="sex" value="女"></property>
-    <!-- ref属性：引用IOC容器中某个bean的id，将所对应的bean为属性赋值 -->
-    <property name="clazz" ref="clazzOne"></property>
-    <property name="hobbies">
+    <property name="gender" value="男"></property>
+    <property name="clazz" ref="clazz1"></property>
+    <property name="hobby">
         <array>
             <value>抽烟</value>
             <value>喝酒</value>
@@ -460,9 +624,11 @@ public void setHobbies(String[] hobbies) {
 在Clazz类中添加以下代码：
 ```java
 private List<Student> students;
+
 public List<Student> getStudents() {
     return students;
 }
+
 public void setStudents(List<Student> students) {
     this.students = students;
 }
@@ -470,14 +636,14 @@ public void setStudents(List<Student> students) {
 
 配置bean：
 ```xml
-<bean id="clazzTwo" class="com.atguigu.spring.bean.Clazz">
-    <property name="clazzId" value="4444"></property>
-    <property name="clazzName" value="Javaee0222"></property>
+<bean id="clazz1" class="com.atguigu.spring.pojo.Clazz">
+    <property name="cid" value="1111"></property>
+    <property name="cname" value="最强王者班"></property>
     <property name="students">
         <list>
-            <ref bean="studentOne"></ref>
-            <ref bean="studentTwo"></ref>
-            <ref bean="studentThree"></ref>
+            <ref bean="student1"></ref>
+            <ref bean="student2"></ref>
+            <ref bean="student3"></ref>
         </list>
     </property>
 </bean>
@@ -489,42 +655,49 @@ public void setStudents(List<Student> students) {
 创建教师类Teacher：
 ```java
 public class Teacher {
-    private Integer teacherId;
-    private String teacherName;
-    public Integer getTeacherId() {
-        return teacherId;
-    }
-    public void setTeacherId(Integer teacherId) {
-        this.teacherId = teacherId;
-    }
-    public String getTeacherName() {
-        return teacherName;
-    }
-    public void setTeacherName(String teacherName) {
-        this.teacherName = teacherName;
-    }
-    public Teacher(Integer teacherId, String teacherName) {
-        this.teacherId = teacherId;
-        this.teacherName = teacherName;
-    }
+    private Integer tid;
+    private String tname;
+
     public Teacher() {
     }
+
+    public Teacher(Integer tid, String tname) {
+        this.tid = tid;
+        this.tname = tname;
+    }
+
+    public Integer getTid() {
+        return tid;
+    }
+
+    public void setTid(Integer tid) {
+        this.tid = tid;
+    }
+
+    public String getTname() {
+        return tname;
+    }
+
+    public void setTname(String tname) {
+        this.tname = tname;
+    }
+
     @Override
     public String toString() {
-        return "Teacher{" +
-            "teacherId=" + teacherId +
-            ", teacherName='" + teacherName + '\'' +
-            '}';
+        return "Teacher [tid=" + tid + ", tname=" + tname + "]";
     }
+
 }
 ```
 
 在Student类中添加以下代码：
 ```java
 private Map<String, Teacher> teacherMap;
+
 public Map<String, Teacher> getTeacherMap() {
     return teacherMap;
 }
+
 public void setTeacherMap(Map<String, Teacher> teacherMap) {
     this.teacherMap = teacherMap;
 }
@@ -532,22 +705,22 @@ public void setTeacherMap(Map<String, Teacher> teacherMap) {
 
 配置bean：
 ```xml
-<bean id="teacherOne" class="com.atguigu.spring.bean.Teacher">
-    <property name="teacherId" value="10010"></property>
-    <property name="teacherName" value="大宝"></property>
+<bean id="teacher1" class="com.atguigu.spring.pojo.Teacher">
+    <property name="tid" value="10086"></property>
+    <property name="tname" value="大宝"></property>
 </bean>
-<bean id="teacherTwo" class="com.atguigu.spring.bean.Teacher">
-    <property name="teacherId" value="10086"></property>
-    <property name="teacherName" value="二宝"></property>
+<bean id="teacher2" class="com.atguigu.spring.pojo.Teacher">
+    <property name="tid" value="10010"></property>
+    <property name="tname" value="小宝"></property>
 </bean>
-<bean id="studentFour" class="com.atguigu.spring.bean.Student">
-    <property name="id" value="1004"></property>
-    <property name="name" value="赵六"></property>
+
+<bean id="student6" class="com.atguigu.spring.pojo.Student">
+    <property name="sid" value="1004"></property>
+    <property name="sname" value="赵六"></property>
     <property name="age" value="26"></property>
-    <property name="sex" value="女"></property>
-    <!-- ref属性：引用IOC容器中某个bean的id，将所对应的bean为属性赋值 -->
-    <property name="clazz" ref="clazzOne"></property>
-    <property name="hobbies">
+    <property name="gender" value="男"></property>
+    <property name="clazz" ref="clazz1"></property>
+    <property name="hobby">
         <array>
             <value>抽烟</value>
             <value>喝酒</value>
@@ -556,18 +729,17 @@ public void setTeacherMap(Map<String, Teacher> teacherMap) {
     </property>
     <property name="teacherMap">
         <map>
-            <entry>
-                <key>
-                    <value>10010</value>
-                </key>
-                <ref bean="teacherOne"></ref>
-            </entry>
-            <entry>
-                <key>
-                    <value>10086</value>
-                </key>
-                <ref bean="teacherTwo"></ref>
-            </entry>
+            <entry key="10086" value-ref="teacher1"></entry>
+            <entry key="10010" value-ref="teacher2"></entry>
+            <!-- 还可以这样使用entry -->
+            <!--
+                <entry>
+                    <key>
+                        <value></value>
+                    </key>
+                    <ref bean="" />
+                </entry>
+            -->
         </map>
     </property>
 </bean>
@@ -577,52 +749,44 @@ public void setTeacherMap(Map<String, Teacher> teacherMap) {
 ```xml
 <!--list集合类型的bean-->
 <util:list id="students">
-    <ref bean="studentOne"></ref>
-    <ref bean="studentTwo"></ref>
-    <ref bean="studentThree"></ref>
+    <ref bean="student1"></ref>
+    <ref bean="student2"></ref>
+    <ref bean="student3"></ref>
 </util:list>
+<bean id="clazz1" class="com.atguigu.spring.pojo.Clazz">
+    <property name="cid" value="1111"></property>
+    <property name="cname" value="最强王者班"></property>
+    <property name="students" ref="students"></property>
+</bean>
+```
+
+```xml
 <!--map集合类型的bean-->
 <util:map id="teacherMap">
-    <entry>
-        <key>
-            <value>10010</value>
-        </key>
-        <ref bean="teacherOne"></ref>
-    </entry>
-    <entry>
-        <key>
-            <value>10086</value>
-        </key>
-        <ref bean="teacherTwo"></ref>
-    </entry>
-</util:map><bean id="clazzTwo" class="com.atguigu.spring.bean.Clazz">
-    <property name="clazzId" value="4444"></property>
-    <property name="clazzName" value="Javaee0222"></property>
-    <property name="students" ref="students"></property>
-</bean><bean id="studentFour" class="com.atguigu.spring.bean.Student">
-    <property name="id" value="1004"></property>
-    <property name="name" value="赵六"></property>
+    <entry key="10086" value-ref="teacher1"></entry>
+    <entry key="10010" value-ref="teacher2"></entry>
+</util:map>
+
+<bean id="student7" class="com.atguigu.spring.pojo.Student">
+    <property name="sid" value="1004"></property>
+    <property name="sname" value="赵六"></property>
     <property name="age" value="26"></property>
-    <property name="sex" value="女"></property>
-    <!-- ref属性：引用IOC容器中某个bean的id，将所对应的bean为属性赋值 -->
-    <property name="clazz" ref="clazzOne"></property>
-    <property name="hobbies">
-        <array>
-            <value>抽烟</value>
-            <value>喝酒</value>
-            <value>烫头</value>
-        </array>
-    </property>
+    <property name="gender" value="男"></property>
     <property name="teacherMap" ref="teacherMap"></property>
 </bean>
 ```
 
 > 使用util:list、util:map标签必须引入相应的命名空间，可以通过idea的提示功能选择
+> xmlns:util="http://www.springframework.org/schema/util"
+> http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd
 
-### 9、实验九：p命名空间
+### 9、实验九：p命名空间（不常用）
+> xmlns:p="http://www.springframework.org/schema/p"
 引入p命名空间后，可以通过以下方式为bean的各个属性赋值
+每个属性都有两个，一个是属性名，另一个后面加了-ref。
 ```xml
-<bean id="studentSix" class="com.atguigu.spring.bean.Student" p:id="1006" p:name="小明" p:clazz-ref="clazzOne" p:teacherMap-ref="teacherMap"></bean>
+<bean id="student8" class="com.atguigu.spring.pojo.Student"
+    p:sid="1005" p:sname="小明" p:teacherMap-ref="teacherMap"></bean>
 ```
 
 ### 10、实验十：引入外部属性文件
@@ -633,7 +797,7 @@ public void setTeacherMap(Map<String, Teacher> teacherMap) {
 <dependency>
     <groupId>mysql</groupId>
     <artifactId>mysql-connector-java</artifactId>
-    <version>8.0.16</version>
+    <version>8.0.30</version>
 </dependency>
 <!-- 数据源 -->
 <dependency>
@@ -647,13 +811,19 @@ public void setTeacherMap(Map<String, Teacher> teacherMap) {
 ![1660203277312](image/Spring/1660203277312.png)
 
 ```properties
-jdbc.user=root
-jdbc.password=atguigu
-jdbc.url=jdbc:mysql://localhost:3306/ssm?serverTimezone=UTC
 jdbc.driver=com.mysql.cj.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/ssm?serverTimezone=UTC
+jdbc.user=root
+jdbc.password=123456
 ```
 
 #### ③引入属性文件
+命名空间：
+```xml
+xmlns:context="http://www.springframework.org/schema/context"
+http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+```
+
 ```xml
 <!-- 引入外部属性文件 -->
 <context:property-placeholder location="classpath:jdbc.properties"/>
@@ -661,7 +831,7 @@ jdbc.driver=com.mysql.cj.jdbc.Driver
 
 #### ④配置bean
 ```xml
-<bean id="druidDataSource" class="com.alibaba.druid.pool.DruidDataSource">
+<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
     <property name="url" value="${jdbc.url}"/>
     <property name="driverClassName" value="${jdbc.driver}"/>
     <property name="username" value="${jdbc.user}"/>
@@ -763,17 +933,17 @@ public class User {
 ```xml
 <!-- scope属性：取值singleton（默认值），bean在IOC容器中只有一个实例，IOC容器初始化时创建对象 -->
 <!-- scope属性：取值prototype，bean在IOC容器中可以有多个实例，getBean()时创建对象 -->
-<bean class="com.atguigu.bean.User" scope="prototype"></bean>
+<bean class="com.atguigu.spring.pojo.User" scope="prototype"></bean>
 ```
 
 #### ④测试
 ```java
 @Test
-public void testBeanScope(){
+public void testBeanScope() {
     ApplicationContext ac = new ClassPathXmlApplicationContext("spring-scope.xml");
     User user1 = ac.getBean(User.class);
     User user2 = ac.getBean(User.class);
-    System.out.println(user1==user2);
+    System.out.println(user1 == user2);
 }
 ```
 
@@ -798,7 +968,7 @@ public class User {
     private Integer age;
 
     public User() {
-        System.out.println("生命周期：1、创建对象");
+        System.out.println("生命周期1：实例化");
     }
 
     public User(Integer id, String username, String password, Integer age) {
@@ -813,7 +983,7 @@ public class User {
     }
 
     public void setId(Integer id) {
-        System.out.println("生命周期：2、依赖注入");
+        System.out.println("生命周期2：依赖注入");
         this.id = id;
     }
 
@@ -842,11 +1012,11 @@ public class User {
     }
 
     public void initMethod() {
-        System.out.println("生命周期：3、初始化");
+        System.out.println("生命周期3：初始化");
     }
 
     public void destroyMethod() {
-        System.out.println("生命周期：5、销毁");
+        System.out.println("生命周期5：销毁");
     }
 
     @Override
@@ -867,8 +1037,8 @@ public class User {
 ```xml
 <!-- 使用init-method属性指定初始化方法 -->
 <!-- 使用destroy-method属性指定销毁方法 -->
-<bean class="com.atguigu.bean.User" scope="prototype" init-method="initMethod" destroy-method="destroyMethod">
-    <property name="id" value="1001"></property>
+<bean id="user" class="com.atguigu.spring.pojo.User" init-method="initMethod" destroy-method="destroyMethod">
+    <property name="id" value="1"></property>
     <property name="username" value="admin"></property>
     <property name="password" value="123456"></property>
     <property name="age" value="23"></property>
@@ -878,27 +1048,76 @@ public class User {
 #### ④测试
 ```java
 @Test
-public void testLife(){
-    ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("spring-lifecycle.xml");
+public void testLifeCycle() {
+    // ConfigurableApplicationContext接口是ApplicationContext接口的子接口，其中扩展了刷新和关闭容器的方法
+    ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("spring-lifecycle.xml");
     User bean = ac.getBean(User.class);
-    System.out.println("生命周期：4、通过IOC容器获取bean并使用");
+    System.out.println("生命周期4：通过IOC容器获取bean并使用");
     ac.close();
 }
 ```
+
+> 生命周期1：实例化
+> 生命周期2：依赖注入
+> 生命周期3：初始化
+> 生命周期4：通过IOC容器获取bean并使用
+> 生命周期5：销毁
+
+```java
+@Test
+public void testLifeCycle() {
+    ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("spring-lifecycle.xml");
+}
+```
+
+> 生命周期1：实例化
+> 生命周期2：依赖注入
+> 生命周期3：初始化
+
+```xml
+<bean id="user" class="com.atguigu.spring.pojo.User" init-method="initMethod" destroy-method="destroyMethod" scope="prototype">
+<!-- 当bean的scope属性设置为prototype后，其销毁将不由IOC容器管理 -->
+    <property name="id" value="1"></property>
+    <property name="username" value="admin"></property>
+    <property name="password" value="123456"></property>
+    <property name="age" value="23"></property>
+</bean>
+```
+
+无输出
+
+```java
+@Test
+public void testLifeCycle() {
+    // ConfigurableApplicationContext接口是ApplicationContext接口的子接口，其中扩展了刷新和关闭容器的方法
+    ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("spring-lifecycle.xml");
+    User bean = ac.getBean(User.class);
+    System.out.println("生命周期4：通过IOC容器获取bean并使用");
+    ac.close();
+}
+```
+
+> 生命周期1：实例化
+> 生命周期2：依赖注入
+> 生命周期3：初始化
+> 生命周期4：通过IOC容器获取bean并使用
 
 #### ⑤bean的后置处理器
 bean的后置处理器会在生命周期的初始化前后添加额外的操作，需要实现BeanPostProcessor接口，且配置到IOC容器中，需要注意的是，bean后置处理器不是单独针对某一个bean生效，而是针对IOC容器中所有bean都会执行
 创建bean的后置处理器：
 ```java
-public class MyBeanProcessor implements BeanPostProcessor {
+public class MyBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        System.out.println("☆☆☆" + beanName + " = " + bean);
+        // 此方法在bean的生命周期初始化之前执行
+        System.out.println("MyBeanPostProcessor.postProcessBeforeInitialization：" + beanName + " = " + bean);
         return bean;
     }
+
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        System.out.println("★★★" + beanName + " = " + bean);
+        // 此方法在bean的生命周期初始化之后执行
+        System.out.println("MyBeanPostProcessor.postProcessAfterInitialization：" + beanName + " = " + bean);
         return bean;
     }
 }
@@ -907,8 +1126,17 @@ public class MyBeanProcessor implements BeanPostProcessor {
 在IOC容器中配置后置处理器：
 ```xml
 <!-- bean的后置处理器要放入IOC容器才能生效 -->
-<bean id="myBeanProcessor" class="com.atguigu.spring.process.MyBeanProcessor"/>
+<bean id="myBeanPostProcessor" class="com.atguigu.spring.process.MyBeanPostProcessor" />
 ```
+
+使用单例进行测试：
+> 生命周期1：实例化
+> 生命周期2：依赖注入
+> MyBeanPostProcessor.postProcessBeforeInitialization：user = User{id=1, username='admin', password='123456', age=23}
+> 生命周期3：初始化
+> MyBeanPostProcessor.postProcessAfterInitialization：user = User{id=1, username='admin', password='123456', age=23}
+> 生命周期4：通过IOC容器获取bean并使用
+> 生命周期5：销毁
 
 ### 13、实验十三：FactoryBean
 
@@ -982,87 +1210,87 @@ import org.springframework.lang.Nullable;
  */
 public interface FactoryBean<T> {
 
-	/**
-	 * The name of an attribute that can be
-	 * {@link org.springframework.core.AttributeAccessor#setAttribute set} on a
-	 * {@link org.springframework.beans.factory.config.BeanDefinition} so that
-	 * factory beans can signal their object type when it can't be deduced from
-	 * the factory bean class.
-	 * @since 5.2
-	 */
-	String OBJECT_TYPE_ATTRIBUTE = "factoryBeanObjectType";
+    /**
+     * The name of an attribute that can be
+     * {@link org.springframework.core.AttributeAccessor#setAttribute set} on a
+     * {@link org.springframework.beans.factory.config.BeanDefinition} so that
+     * factory beans can signal their object type when it can't be deduced from
+     * the factory bean class.
+     * @since 5.2
+     */
+    String OBJECT_TYPE_ATTRIBUTE = "factoryBeanObjectType";
 
 
-	/**
-	 * Return an instance (possibly shared or independent) of the object
-	 * managed by this factory.
-	 * <p>As with a {@link BeanFactory}, this allows support for both the
-	 * Singleton and Prototype design pattern.
-	 * <p>If this FactoryBean is not fully initialized yet at the time of
-	 * the call (for example because it is involved in a circular reference),
-	 * throw a corresponding {@link FactoryBeanNotInitializedException}.
-	 * <p>As of Spring 2.0, FactoryBeans are allowed to return {@code null}
-	 * objects. The factory will consider this as normal value to be used; it
-	 * will not throw a FactoryBeanNotInitializedException in this case anymore.
-	 * FactoryBean implementations are encouraged to throw
-	 * FactoryBeanNotInitializedException themselves now, as appropriate.
-	 * @return an instance of the bean (can be {@code null})
-	 * @throws Exception in case of creation errors
-	 * @see FactoryBeanNotInitializedException
-	 */
-	@Nullable
-	T getObject() throws Exception;
+    /**
+     * Return an instance (possibly shared or independent) of the object
+     * managed by this factory.
+     * <p>As with a {@link BeanFactory}, this allows support for both the
+     * Singleton and Prototype design pattern.
+     * <p>If this FactoryBean is not fully initialized yet at the time of
+     * the call (for example because it is involved in a circular reference),
+     * throw a corresponding {@link FactoryBeanNotInitializedException}.
+     * <p>As of Spring 2.0, FactoryBeans are allowed to return {@code null}
+     * objects. The factory will consider this as normal value to be used; it
+     * will not throw a FactoryBeanNotInitializedException in this case anymore.
+     * FactoryBean implementations are encouraged to throw
+     * FactoryBeanNotInitializedException themselves now, as appropriate.
+     * @return an instance of the bean (can be {@code null})
+     * @throws Exception in case of creation errors
+     * @see FactoryBeanNotInitializedException
+     */
+    @Nullable
+    T getObject() throws Exception;
 
-	/**
-	 * Return the type of object that this FactoryBean creates,
-	 * or {@code null} if not known in advance.
-	 * <p>This allows one to check for specific types of beans without
-	 * instantiating objects, for example on autowiring.
-	 * <p>In the case of implementations that are creating a singleton object,
-	 * this method should try to avoid singleton creation as far as possible;
-	 * it should rather estimate the type in advance.
-	 * For prototypes, returning a meaningful type here is advisable too.
-	 * <p>This method can be called <i>before</i> this FactoryBean has
-	 * been fully initialized. It must not rely on state created during
-	 * initialization; of course, it can still use such state if available.
-	 * <p><b>NOTE:</b> Autowiring will simply ignore FactoryBeans that return
-	 * {@code null} here. Therefore it is highly recommended to implement
-	 * this method properly, using the current state of the FactoryBean.
-	 * @return the type of object that this FactoryBean creates,
-	 * or {@code null} if not known at the time of the call
-	 * @see ListableBeanFactory#getBeansOfType
-	 */
-	@Nullable
-	Class<?> getObjectType();
+    /**
+     * Return the type of object that this FactoryBean creates,
+     * or {@code null} if not known in advance.
+     * <p>This allows one to check for specific types of beans without
+     * instantiating objects, for example on autowiring.
+     * <p>In the case of implementations that are creating a singleton object,
+     * this method should try to avoid singleton creation as far as possible;
+     * it should rather estimate the type in advance.
+     * For prototypes, returning a meaningful type here is advisable too.
+     * <p>This method can be called <i>before</i> this FactoryBean has
+     * been fully initialized. It must not rely on state created during
+     * initialization; of course, it can still use such state if available.
+     * <p><b>NOTE:</b> Autowiring will simply ignore FactoryBeans that return
+     * {@code null} here. Therefore it is highly recommended to implement
+     * this method properly, using the current state of the FactoryBean.
+     * @return the type of object that this FactoryBean creates,
+     * or {@code null} if not known at the time of the call
+     * @see ListableBeanFactory#getBeansOfType
+     */
+    @Nullable
+    Class<?> getObjectType();
 
-	/**
-	 * Is the object managed by this factory a singleton? That is,
-	 * will {@link #getObject()} always return the same object
-	 * (a reference that can be cached)?
-	 * <p><b>NOTE:</b> If a FactoryBean indicates to hold a singleton object,
-	 * the object returned from {@code getObject()} might get cached
-	 * by the owning BeanFactory. Hence, do not return {@code true}
-	 * unless the FactoryBean always exposes the same reference.
-	 * <p>The singleton status of the FactoryBean itself will generally
-	 * be provided by the owning BeanFactory; usually, it has to be
-	 * defined as singleton there.
-	 * <p><b>NOTE:</b> This method returning {@code false} does not
-	 * necessarily indicate that returned objects are independent instances.
-	 * An implementation of the extended {@link SmartFactoryBean} interface
-	 * may explicitly indicate independent instances through its
-	 * {@link SmartFactoryBean#isPrototype()} method. Plain {@link FactoryBean}
-	 * implementations which do not implement this extended interface are
-	 * simply assumed to always return independent instances if the
-	 * {@code isSingleton()} implementation returns {@code false}.
-	 * <p>The default implementation returns {@code true}, since a
-	 * {@code FactoryBean} typically manages a singleton instance.
-	 * @return whether the exposed object is a singleton
-	 * @see #getObject()
-	 * @see SmartFactoryBean#isPrototype()
-	 */
-	default boolean isSingleton() {
-		return true;
-	}
+    /**
+     * Is the object managed by this factory a singleton? That is,
+     * will {@link #getObject()} always return the same object
+     * (a reference that can be cached)?
+     * <p><b>NOTE:</b> If a FactoryBean indicates to hold a singleton object,
+     * the object returned from {@code getObject()} might get cached
+     * by the owning BeanFactory. Hence, do not return {@code true}
+     * unless the FactoryBean always exposes the same reference.
+     * <p>The singleton status of the FactoryBean itself will generally
+     * be provided by the owning BeanFactory; usually, it has to be
+     * defined as singleton there.
+     * <p><b>NOTE:</b> This method returning {@code false} does not
+     * necessarily indicate that returned objects are independent instances.
+     * An implementation of the extended {@link SmartFactoryBean} interface
+     * may explicitly indicate independent instances through its
+     * {@link SmartFactoryBean#isPrototype()} method. Plain {@link FactoryBean}
+     * implementations which do not implement this extended interface are
+     * simply assumed to always return independent instances if the
+     * {@code isSingleton()} implementation returns {@code false}.
+     * <p>The default implementation returns {@code true}, since a
+     * {@code FactoryBean} typically manages a singleton instance.
+     * @return whether the exposed object is a singleton
+     * @see #getObject()
+     * @see SmartFactoryBean#isPrototype()
+     */
+    default boolean isSingleton() {
+        return true;
+    }
 
 }
 ```
@@ -1070,32 +1298,38 @@ public interface FactoryBean<T> {
 #### ②创建类UserFactoryBean
 ```java
 public class UserFactoryBean implements FactoryBean<User> {
+
     @Override
     public User getObject() throws Exception {
         return new User();
     }
+
     @Override
     public Class<?> getObjectType() {
         return User.class;
     }
+
 }
 ```
 
 #### ③配置bean
 ```xml
-<bean id="user" class="com.atguigu.bean.UserFactoryBean"></bean>
+<bean id="user" class="com.atguigu.spring.factory.UserFactoryBean"></bean>
 ```
 
 #### ④测试
 ```java
 @Test
-public void testUserFactoryBean(){
-    //获取IOC容器
-    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-factorybean.xml");
-    User user = (User) ac.getBean("user");
+public void testUserFactoryBean() {
+    // 获取IOC容器
+    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-factory.xml");
+    User user = ac.getBean(User.class);
     System.out.println(user);
 }
 ```
+
+> 生命周期1：实例化
+> User{id=null, username='null', password='null', age=null}
 
 ### 14、实验十四：基于xml的自动装配
 > 自动装配：
@@ -1105,83 +1339,95 @@ public void testUserFactoryBean(){
 创建类UserController
 ```java
 public class UserController {
+
     private UserService userService;
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
-    public void saveUser(){
+
+    public void saveUser() {
         userService.saveUser();
     }
 }
 ```
 
-创建接口UserService
+创建接口UserService及其实现类UserServiceImpl
 ```java
 public interface UserService {
     void saveUser();
 }
-```
 
-创建类UserServiceImpl实现接口UserService
-```java
 public class UserServiceImpl implements UserService {
+
     private UserDao userDao;
     public void setUserDao(UserDao userDao) {
         this.userDao = userDao;
     }
+
     @Override
     public void saveUser() {
         userDao.saveUser();
     }
+
 }
 ```
 
-创建接口UserDao
+创建接口UserDao及其实现类UserDaoImpl
 ```java
 public interface UserDao {
     void saveUser();
 }
-```
 
-创建类UserDaoImpl实现接口UserDao
-```java
 public class UserDaoImpl implements UserDao {
+
     @Override
     public void saveUser() {
         System.out.println("保存成功");
     }
+
 }
 ```
 
 #### ②配置bean
+**手动装配：**
+```xml
+<bean id="userController" class="com.atguigu.spring.controller.UserController">
+    <property name="userService" ref="userService" />
+</bean>
+<bean id="userService" class="com.atguigu.spring.service.impl.UserServiceImpl">
+    <property name="userDao" ref="userDao" />
+</bean>
+<bean id="userDao" class="com.atguigu.spring.dao.impl.UserDaoImpl"></bean>
+```
+
 使用bean标签的autowire属性设置自动装配效果
-自动装配方式：byType
+**自动装配方式：byType**
 byType：根据类型匹配IOC容器中的某个兼容类型的bean，为属性自动赋值
 - 若在IOC中，没有任何一个兼容类型的bean能够为属性赋值，则该属性不装配，即值为默认值null
 - 若在IOC中，有多个兼容类型的bean能够为属性赋值，则抛出异常NoUniqueBeanDefinitionException
 
 ```xml
-<bean id="userController" class="com.atguigu.autowire.xml.controller.UserController" autowire="byType"></bean>
-<bean id="userService" class="com.atguigu.autowire.xml.service.impl.UserServiceImpl" autowire="byType"></bean>
-<bean id="userDao" class="com.atguigu.autowire.xml.dao.impl.UserDaoImpl"></bean>
+<bean id="userController" class="com.atguigu.spring.controller.UserController" autowire="byType"></bean>
+<bean id="userService" class="com.atguigu.spring.service.impl.UserServiceImpl" autowire="byType"></bean>
+<bean id="userDao" class="com.atguigu.spring.dao.impl.UserDaoImpl"></bean>
 ```
 
-自动装配方式：byName
+**自动装配方式：byName**
 byName：将自动装配的属性的属性名，作为bean的id在IOC容器中匹配相对应的bean进行赋值
 
 ```xml
-<bean id="userController" class="com.atguigu.autowire.xml.controller.UserController" autowire="byName"></bean>
-<bean id="userService" class="com.atguigu.autowire.xml.service.impl.UserServiceImpl" autowire="byName"></bean>
-<bean id="userServiceImpl" class="com.atguigu.autowire.xml.service.impl.UserServiceImpl" autowire="byName"></bean>
-<bean id="userDao" class="com.atguigu.autowire.xml.dao.impl.UserDaoImpl"></bean>
-<bean id="userDaoImpl" class="com.atguigu.autowire.xml.dao.impl.UserDaoImpl"></bean>
+<bean id="userController" class="com.atguigu.spring.controller.UserController" autowire="byName"></bean>
+<bean id="userService" class="com.atguigu.spring.service.impl.UserServiceImpl" autowire="byName"></bean>
+<bean id="userDao" class="com.atguigu.spring.dao.impl.UserDaoImpl"></bean>
+<bean id="userServiceImpl" class="com.atguigu.spring.service.impl.UserServiceImpl" autowire="byName"></bean>
+<bean id="userDaoImpl" class="com.atguigu.spring.dao.impl.UserDaoImpl"></bean>
 ```
 
 #### ③测试
 ```java
 @Test
-public void testAutoWireByXML(){
-    ApplicationContext ac = new ClassPathXmlApplicationContext("autowire-xml.xml");
+public void testAutoWireByXML() {
+    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-autowire.xml");
     UserController userController = ac.getBean(UserController.class);
     userController.saveUser();
 }
@@ -1275,44 +1521,40 @@ public class UserDaoImpl implements UserDao {
 #### ⑦扫描组件
 情况一：最基本的扫描方式
 ```xml
-<context:component-scan base-package="com.atguigu"></context:component-scan>
+<context:component-scan base-package="com.atguigu.spring"></context:component-scan>
 ```
 
-情况二：指定要排除的组件
+情况二：指定要排除的组件（常用）
 ```xml
-<context:component-scan base-package="com.atguigu">
+<context:component-scan base-package="com.atguigu.spring">
     <!-- context:exclude-filter标签：指定排除规则 -->
     <!--
         type：设置排除或包含的依据
             type="annotation"，根据注解排除，expression中设置要排除的注解的全类名
             type="assignable"，根据类型排除，expression中设置要排除的类型的全类名
     -->
-    <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
     <!--<context:exclude-filter type="assignable" expression="com.atguigu.controller.UserController"/>-->
 </context:component-scan>
 ```
 
 情况三：仅扫描指定组件
 ```xml
-<context:component-scan base-package="com.atguigu" use-default-filters="false">
-<!-- context:include-filter标签：指定在原有扫描规则的基础上追加的规则 -->
-<!-- use-default-filters属性：取值false表示关闭默认扫描规则 -->
-<!-- 此时必须设置use-default-filters="false"，因为默认规则即扫描指定包下所有类 -->
-<!--
-    type：设置排除或包含的依据
-        type="annotation"，根据注解排除，expression中设置要排除的注解的全类名
-        type="assignable"，根据类型排除，expression中设置要排除的类型的全类名
--->
-<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
-<!--<context:include-filter type="assignable" expression="com.atguigu.controller.UserController"/>-->
+<context:component-scan base-package="com.atguigu.spring" use-default-filters="false">
+    <!-- context:include-filter标签：指定在原有扫描规则的基础上追加的规则 -->
+    <!-- use-default-filters属性：取值false表示关闭默认扫描规则 -->
+    <!-- 此时必须设置use-default-filters="false"，因为默认规则即扫描指定包下所有类 -->
+    <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+    <!--<context:include-filter type="assignable" expression="com.atguigu.controller.UserController"/>-->
 </context:component-scan>
+<!-- 上面的写法用的不多，实现上面的功能我们通常直接将base-package设置为com.atguigu.spring.controller -->
 ```
 
 #### ⑧测试
 ```java
 @Test
-public void testAutowireByAnnotation(){
-    ApplicationContext ac = new ClassPathXmlApplicationContext("applicationContext.xml");
+public void test() {
+    ApplicationContext ac = new ClassPathXmlApplicationContext("spring-ioc-annotation.xml");
     UserController userController = ac.getBean(UserController.class);
     System.out.println(userController);
     UserService userService = ac.getBean(UserService.class);
@@ -1325,15 +1567,14 @@ public void testAutowireByAnnotation(){
 #### ⑨组件所对应的bean的id
 在我们使用XML方式管理bean的时候，每个bean都有一个唯一标识，便于在其他地方引用。现在使用注解后，每个组件仍然应该有一个唯一标识。
 
-> 默认情况
-> 类名首字母小写就是bean的id。例如：UserController类对应的bean的id就是userController。
-> 自定义bean的id
-> 可通过标识组件的注解的value属性设置自定义的bean的id
-> ```java
-> @Service("userService")//默认为userServiceImpl
-> public class UserServiceImpl implements UserService {
-> }
-> ```
+默认情况：类名首字母小写就是bean的id。例如：UserController类对应的bean的id就是userController。（大多数情况我们都是通过类型来获取Bean）
+
+自定义bean的id：可通过标识组件的注解的value属性设置自定义的bean的id
+```java
+@Service("userService") // 默认为userServiceImpl
+public class UserServiceImpl implements UserService {
+}
+```
 
 ### 2、实验二：基于注解的自动装配
 
@@ -1349,7 +1590,8 @@ public void testAutowireByAnnotation(){
 public class UserController {
     @Autowired
     private UserService userService;
-    public void saveUser(){
+
+    public void saveUser() {
         userService.saveUser();
     }
 }
@@ -1366,6 +1608,7 @@ public interface UserService {
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserDao userDao;
+
     @Override
     public void saveUser() {
         userDao.saveUser();
@@ -1390,7 +1633,7 @@ public class UserDaoImpl implements UserDao {
 ```
 
 #### ③@Autowired注解其他细节
-> @Autowired注解可以标记在构造器和set方法上
+> @Autowired注解可以标记在构造器和set方法上（不常用）
 
 ```java
 @Controller
@@ -1446,7 +1689,7 @@ public class UserController {
 ```
 
 > @Autowired中有属性required，默认值为true，因此在自动装配无法找到相应的bean时，会装配失败
-> 可以将属性required的值设置为true，则表示能装就装，装不上就不装，此时自动装配的属性为默认值
+> 可以将属性required的值设置为false，则表示能装就装，装不上就不装，此时自动装配的属性为默认值（就像XML中的样子）
 > 但是实际开发时，基本上所有需要装配组件的地方都是必须装配的，用不上这个属性。
 
 
@@ -1460,8 +1703,11 @@ public class UserController {
 ```java
 public interface Calculator {
     int add(int i, int j);
+
     int sub(int i, int j);
+
     int mul(int i, int j);
+
     int div(int i, int j);
 }
 ```
@@ -1599,6 +1845,39 @@ public class CalculatorStaticProxy implements Calculator {
         System.out.println("[日志] add 方法结束了，结果是：" + addResult);
         return addResult;
     }
+
+    @Override
+    public int sub(int i, int j) {
+        System.out.println("[日志] sub 方法开始了，参数是：" + i + "," + j);
+        int subResult = target.sub(i, j);
+        System.out.println("[日志] sub 方法结束了，结果是：" + subResult);
+        return subResult;
+    }
+
+    @Override
+    public int mul(int i, int j) {
+        System.out.println("[日志] mul 方法开始了，参数是：" + i + "," + j);
+        int mulResult = target.mul(i, j);
+        System.out.println("[日志] mul 方法结束了，结果是：" + mulResult);
+        return mulResult;
+    }
+
+    @Override
+    public int div(int i, int j) {
+        System.out.println("[日志] div 方法开始了，参数是：" + i + "," + j);
+        int divResult = target.div(i, j);
+        System.out.println("[日志] div 方法结束了，结果是：" + divResult);
+        return divResult;
+    }
+}
+```
+
+测试：
+```java
+@Test
+public void testStaticProxy() {
+    Calculator csp = new CalculatorStaticProxy(new CalculatorPureImpl());
+    csp.add(1, 2);
 }
 ```
 
@@ -1616,26 +1895,28 @@ public class ProxyFactory {
     public ProxyFactory(Object target) {
         this.target = target;
     }
-
+    
     public Object getProxy() {
         /**
          * newProxyInstance()：创建一个代理实例
          * 其中有三个参数：
-         * 1、classLoader：加载动态生成的代理类的类加载器
-         * 2、interfaces：目标对象实现的所有接口的class对象所组成的数组
-         * 3、invocationHandler：设置代理对象实现目标对象方法的过程，即代理类中如何重写接口中的抽象方法
+         * 1、ClassLoader loader：加载动态生成的代理类的类加载器
+         * 2、Class<?>[] interfaces：目标对象实现的所有接口的class对象所组成的数组
+         * 3、InvocationHandler h：设置代理对象实现目标对象方法的过程，即代理类中如何重写接口中的抽象方法
          */
         ClassLoader classLoader = target.getClass().getClassLoader();
         Class<?>[] interfaces = target.getClass().getInterfaces();
         InvocationHandler invocationHandler = new InvocationHandler() {
+            /**
+             * invoke()：代理类中如何重写接口中的抽象方法
+             * 其中有三个参数：
+             * 1、Object proxy：代理类的实例
+             * 2、Method method：目标对象方法的Method对象
+             * 3、Object[] args：目标对象方法的参数值
+             */
             @Override
             public Object invoke(Object proxy, Method method, Object[] args)
                     throws Throwable {
-                /**
-                 * proxy：代理对象
-                 * method：代理对象需要实现的方法，即其中需要重写的方法
-                 * args：method所对应方法的参数
-                 */
                 Object result = null;
                 try {
                     System.out.println("[动态代理][日志] " + method.getName() + "，参数：" + Arrays.toString(args));
@@ -1650,8 +1931,7 @@ public class ProxyFactory {
                 return result;
             }
         };
-        return Proxy.newProxyInstance(classLoader, interfaces,
-                invocationHandler);
+        return Proxy.newProxyInstance(classLoader, interfaces, invocationHandler);
     }
 }
 ```
@@ -1659,13 +1939,17 @@ public class ProxyFactory {
 ### 4、测试
 ```java
 @Test
-public void testDynamicProxy(){
-    ProxyFactory factory = new ProxyFactory(new CalculatorLogImpl());
+public void testDynamicProxy() {
+    ProxyFactory factory = new ProxyFactory(new CalculatorPureImpl());
     Calculator proxy = (Calculator) factory.getProxy();
-    proxy.div(1,0);
-    //proxy.div(1,1);
+    proxy.div(1, 0);
 }
 ```
+
+### 5、补充
+动态代理有两种：
+1. jdk动态代理，要求必须有接口，最终生成的代理类和目标类实现相同的接口在com.sun.proxy包下，类名为$proxy+数字
+2. cglib动态代理，最终生成的代理类会继承目标类，并且和目标类在相同的包下
 
 
 ## 3、AOP概念及相关术语
@@ -1743,8 +2027,11 @@ Spring 的 AOP 技术可以通过切入点定位到特定的连接点。
 ```java
 public interface Calculator {
     int add(int i, int j);
+
     int sub(int i, int j);
+
     int mul(int i, int j);
+
     int div(int i, int j);
 }
 ```
@@ -1789,33 +2076,36 @@ public class CalculatorPureImpl implements Calculator {
 @Aspect
 // @Component注解保证这个切面类能够放入IOC容器
 @Component
-public class LogAspect {
-    @Before("execution(public int com.atguigu.aop.annotation.CalculatorImpl.*(..))")
+public class LoggerAspect {
+    // 定位到CalculatorPureImpl类中的add方法：
+    // execution(public int com.atguigu.spring.aop.annotation.Calculator.add(int, int))
+
+    @Before("execution(* com.atguigu.spring.aop.annotation.CalculatorPureImpl.*(..))")
     public void beforeMethod(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
         String args = Arrays.toString(joinPoint.getArgs());
         System.out.println("Logger-->前置通知，方法名：" + methodName + "，参数：" + args);
     }
 
-    @After("execution(* com.atguigu.aop.annotation.CalculatorImpl.*(..))")
+    @After("execution(* com.atguigu.spring.aop.annotation.CalculatorPureImpl.*(..))")
     public void afterMethod(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
         System.out.println("Logger-->后置通知，方法名：" + methodName);
     }
 
-    @AfterReturning(value = "execution(* com.atguigu.aop.annotation.CalculatorImpl.*(..))", returning = "result")
+    @AfterReturning(value = "execution(* com.atguigu.spring.aop.annotation.CalculatorPureImpl.*(..))", returning = "result")
     public void afterReturningMethod(JoinPoint joinPoint, Object result) {
         String methodName = joinPoint.getSignature().getName();
         System.out.println("Logger-->返回通知，方法名：" + methodName + "，结果：" + result);
     }
 
-    @AfterThrowing(value = "execution(* com.atguigu.aop.annotation.CalculatorImpl.*(..))", throwing = "ex")
+    @AfterThrowing(value = "execution(* com.atguigu.spring.aop.annotation.CalculatorPureImpl.*(..))", throwing = "ex")
     public void afterThrowingMethod(JoinPoint joinPoint, Throwable ex) {
         String methodName = joinPoint.getSignature().getName();
         System.out.println("Logger-->异常通知，方法名：" + methodName + "，异常：" + ex);
     }
 
-    @Around("execution(* com.atguigu.aop.annotation.CalculatorImpl.*(..))")
+    @Around("execution(* com.atguigu.spring.aop.annotation.CalculatorPureImpl.*(..))")
     public Object aroundMethod(ProceedingJoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
         String args = Arrays.toString(joinPoint.getArgs());
@@ -1844,16 +2134,37 @@ public class LogAspect {
     2、开启AspectJ的自动代理，为目标对象自动生成代理
     3、将切面类通过注解@Aspect标识
 -->
-<context:component-scan base-package="com.atguigu.aop.annotation"></context:component-scan>
+<context:component-scan base-package="com.atguigu.spring.aop.annotation"></context:component-scan>
+<!-- 开启基于注解的AOP -->
 <aop:aspectj-autoproxy />
 ```
+
+测试：
+```java
+@Test
+public void testAOPByAnnotation() {
+    ApplicationContext ac = new ClassPathXmlApplicationContext("aop-annotation.xml");
+    // CalculatorPureImpl cpl = ac.getBean(CalculatorPureImpl.class);
+    // 无法从IOC容器中直接获取一个CalculatorPureImpl类型的bean：NoSuchBeanDefinitionException
+    Calculator c = ac.getBean(Calculator.class);
+    c.add(1, 1);
+}
+```
+
+> 环绕通知-->目标对象方法执行之前
+> Logger-->前置通知，方法名：add，参数：[1, 1]
+> 方法内部 result = 2
+> Logger-->返回通知，方法名：add，结果：2
+> Logger-->后置通知，方法名：add
+> 环绕通知-->目标对象方法返回值之后
+> 环绕通知-->目标对象方法执行完毕
 
 ### 4、各种通知
 - 前置通知：使用@Before注解标识，在被代理的目标方法前执行
 - 返回通知：使用@AfterReturning注解标识，在被代理的目标方法成功结束后执行（寿终正寝）
 - 异常通知：使用@AfterThrowing注解标识，在被代理的目标方法异常结束后执行（死于非命）
 - 后置通知：使用@After注解标识，在被代理的目标方法最终结束后执行（盖棺定论）
-- 环绕通知：使用@Around注解标识，使用try...catch...finally结构围绕整个被代理的目标方法，包括上面四种通知对应的所有位置
+- 环绕通知：使用@Around注解标识，使用try...catch...finally结构围绕整个被代理的目标方法，包括上面四种通知对应的所有位置（通常不与前四种混用）
 
 > 各种通知的执行顺序：
 > - Spring版本5.3.x以前：
@@ -1873,7 +2184,7 @@ public class LogAspect {
 ![1660209268497](image/Spring/1660209268497.png)
 
 #### ②语法细节
-- 用*号代替“权限修饰符”和“返回值”部分表示“权限修饰符”和“返回值”不限
+- 用*号代替“权限修饰符”和“返回值”部分，表示“权限修饰符”和“返回值”不限
 - 在包名的部分，一个“*”号只能代表包的层次结构中的一层，表示这一层是任意的。
   - 例如：*.Hello匹配com.Hello，不匹配com.atguigu.Hello
 - 在包名的部分，使用“*..”表示包名任意、包的层次深度任意
@@ -1897,27 +2208,28 @@ public class LogAspect {
 
 #### ①声明
 ```java
-@Pointcut("execution(* com.atguigu.aop.annotation.*.*(..))")
-public void pointCut(){}
+@Pointcut("execution(* com.atguigu.spring.aop.annotation.CalculatorPureImpl.*(..))")
+public void pointCut() {
+}
 ```
 
 #### ②在同一个切面中使用
 ```java
 @Before("pointCut()")
-public void beforeMethod(JoinPoint joinPoint){
+public void beforeMethod(JoinPoint joinPoint) {
     String methodName = joinPoint.getSignature().getName();
     String args = Arrays.toString(joinPoint.getArgs());
-    System.out.println("Logger-->前置通知，方法名："+methodName+"，参数："+args);
+    System.out.println("Logger-->前置通知，方法名：" + methodName + "，参数：" + args);
 }
 ```
 
 #### ③在不同切面中使用
 ```java
-@Before("com.atguigu.aop.CommonPointCut.pointCut()")
-public void beforeMethod(JoinPoint joinPoint){
+@Before("com.atguigu.spring.aop.annotation.LoggerAspect.pointCut()")
+public void beforeMethod(JoinPoint joinPoint) {
     String methodName = joinPoint.getSignature().getName();
     String args = Arrays.toString(joinPoint.getArgs());
-    System.out.println("Logger-->前置通知，方法名："+methodName+"，参数："+args);
+    System.out.println("Logger-->前置通知，方法名：" + methodName + "，参数：" + args);
 }
 ```
 
@@ -1926,39 +2238,40 @@ public void beforeMethod(JoinPoint joinPoint){
 #### ①获取连接点信息
 获取连接点信息可以在通知方法的参数位置设置JoinPoint类型的形参
 ```java
-@Before("execution(public int com.atguigu.aop.annotation.CalculatorImpl.*(..))")
-public void beforeMethod(JoinPoint joinPoint){
-    //获取连接点的签名信息
+@Before("pointCut()")
+public void beforeMethod(JoinPoint joinPoint) {
+    // 获取连接点的签名信息
     String methodName = joinPoint.getSignature().getName();
-    //获取目标方法到的实参信息
+    // 获取目标方法到的实参信息
     String args = Arrays.toString(joinPoint.getArgs());
-    System.out.println("Logger-->前置通知，方法名："+methodName+"，参数："+args);
+    System.out.println("Logger-->前置通知，方法名：" + methodName + "，参数：" + args);
 }
 ```
 
 #### ②获取目标方法的返回值
 @AfterReturning中的属性returning，用来将通知方法的某个形参，接收目标方法的返回值
 ```java
-@AfterReturning(value = "execution(* com.atguigu.aop.annotation.CalculatorImpl.*(..))", returning = "result")
-public void afterReturningMethod(JoinPoint joinPoint, Object result){
+@AfterReturning(value = "pointCut()", returning = "result")
+public void afterReturningMethod(JoinPoint joinPoint, Object result) {
     String methodName = joinPoint.getSignature().getName();
-    System.out.println("Logger-->返回通知，方法名："+methodName+"，结果："+result);
+    System.out.println("Logger-->返回通知，方法名：" + methodName + "，结果：" + result);
 }
 ```
 
 #### ③获取目标方法的异常
 @AfterThrowing中的属性throwing，用来将通知方法的某个形参，接收目标方法的异常
 ```java
-@AfterThrowing(value = "execution(* com.atguigu.aop.annotation.CalculatorImpl.*(..))", throwing = "ex")
-public void afterThrowingMethod(JoinPoint joinPoint, Throwable ex){
+@AfterThrowing(value = "pointCut()", throwing = "ex")
+public void afterThrowingMethod(JoinPoint joinPoint, Throwable ex) {
     String methodName = joinPoint.getSignature().getName();
-    System.out.println("Logger-->异常通知，方法名："+methodName+"，异常："+ex);
+    System.out.println("Logger-->异常通知，方法名：" + methodName + "，异常：" + ex);
 }
 ```
 
 ### 8、环绕通知
+更像是动态代理的实现
 ```java
-@Around("execution(* com.atguigu.aop.annotation.CalculatorImpl.*(..))")
+@Around("pointCut()")
 public Object aroundMethod(ProceedingJoinPoint joinPoint){
     String methodName = joinPoint.getSignature().getName();
     String args = Arrays.toString(joinPoint.getArgs());
@@ -1980,27 +2293,88 @@ public Object aroundMethod(ProceedingJoinPoint joinPoint){
 
 ### 9、切面的优先级
 相同目标方法上同时存在多个切面时，切面的优先级控制切面的内外嵌套顺序。
+![1660209539567](image/Spring/1660209539567.png)
 - 优先级高的切面：外面
 - 优先级低的切面：里面
 
-使用@Order注解可以控制切面的优先级：
+使用@Order注解可以控制切面的优先级，值为整数，可为负数：
 - @Order(较小的数)：优先级高
 - @Order(较大的数)：优先级低
 
-![1660209539567](image/Spring/1660209539567.png)
+Order注解的细节：
+```java
+public @interface Order {
+    int value() default Ordered.LOWEST_PRECEDENCE;
+    // 在Ordered中该值的定义：int LOWEST_PRECEDENCE = Integer.MAX_VALUE;
+    // 属性值越小优先级越高，默认是最低的优先级
+}
+```
 
 
 ## 5、基于XML的AOP（了解）
 
 ### 1、准备工作
-参考基于注解的AOP环境
+参考基于注解的AOP环境，将Aspect相关注解删除，如下：
+```java
+@Component
+public class LoggerAspect {
+
+    public Object aroundMethod(ProceedingJoinPoint joinPoint) {
+        Object result = null;
+        try {
+            System.out.println("环绕通知-->目标对象方法执行之前");
+            // 目标对象（连接点）方法的执行
+            result = joinPoint.proceed();
+            System.out.println("环绕通知-->目标对象方法返回值之后");
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            System.out.println("环绕通知-->目标对象方法出现异常时");
+        } finally {
+            System.out.println("环绕通知-->目标对象方法执行完毕");
+        }
+        return result;
+    }
+
+    public void beforeMethod(JoinPoint joinPoint) {
+        String methodName = joinPoint.getSignature().getName();
+        String args = Arrays.toString(joinPoint.getArgs());
+        System.out.println("Logger-->前置通知，方法名：" + methodName + "，参数：" + args);
+    }
+
+    public void afterMethod(JoinPoint joinPoint) {
+        String methodName = joinPoint.getSignature().getName();
+        System.out.println("Logger-->后置通知，方法名：" + methodName);
+    }
+
+    public void afterReturningMethod(JoinPoint joinPoint, Object result) {
+        String methodName = joinPoint.getSignature().getName();
+        System.out.println("Logger-->返回通知，方法名：" + methodName + "，结果：" + result);
+    }
+
+    public void afterThrowingMethod(JoinPoint joinPoint, Throwable ex) {
+        String methodName = joinPoint.getSignature().getName();
+        System.out.println("Logger-->异常通知，方法名：" + methodName + "，异常：" + ex);
+    }
+
+}
+```
+
+```java
+@Component
+public class ValidateAspect {
+    public void beforeMethod() {
+        System.out.println("Validate-->前置通知");
+    }
+}
+```
 
 ### 2、实现
 ```xml
-<context:component-scan base-package="com.atguigu.aop.xml"></context:component-scan><aop:config>
+<context:component-scan base-package="com.atguigu.aop.xml"></context:component-scan>
+<aop:config>
     <!--配置切面类-->
     <aop:aspect ref="loggerAspect">
-        <aop:pointcut id="pointCut" expression="execution(*com.atguigu.aop.xml.CalculatorImpl.*(..))" />
+        <aop:pointcut id="pointCut" expression="execution(* com.atguigu.spring.aop.xml.CalculatorPureImpl.*(..))" />
         <aop:before method="beforeMethod" pointcut-ref="pointCut"></aop:before>
         <aop:after method="afterMethod" pointcut-ref="pointCut"></aop:after>
         <aop:after-returning method="afterReturningMethod" returning="result" pointcut-ref="pointCut"></aop:after-returning>
@@ -2008,7 +2382,7 @@ public Object aroundMethod(ProceedingJoinPoint joinPoint){
         <aop:around method="aroundMethod" pointcut-ref="pointCut"></aop:around>
     </aop:aspect>
     <aop:aspect ref="validateAspect" order="1">
-        <aop:before method="validateBeforeMethod" pointcut-ref="pointCut"></aop:before>
+        <aop:before method="beforeMethod" pointcut-ref="pointCut"></aop:before>
     </aop:aspect>
 </aop:config>
 ```
@@ -2058,7 +2432,7 @@ Spring 框架对 JDBC 进行封装，使用 JdbcTemplate 方便实现对数据�
     <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.16</version>
+        <version>8.0.30</version>
     </dependency>
     <!-- 数据源 -->
     <dependency>
@@ -2071,27 +2445,28 @@ Spring 框架对 JDBC 进行封装，使用 JdbcTemplate 方便实现对数据�
 
 #### ②创建jdbc.properties
 ```properties
-jdbc.user=root
-jdbc.password=atguigu
-jdbc.url=jdbc:mysql://localhost:3306/ssm
 jdbc.driver=com.mysql.cj.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/ssm?serverTimezone=UTC
+jdbc.username=root
+jdbc.password=123456
 ```
 
 #### ③配置Spring的配置文件
 ```xml
 <!-- 导入外部属性文件 -->
 <context:property-placeholder location="classpath:jdbc.properties" />
+<!-- 如果外部属性文件与Spring的配置文件在同一路经，classpath可省略 -->
 <!-- 配置数据源 -->
-<bean id="druidDataSource" class="com.alibaba.druid.pool.DruidDataSource">
-    <property name="url" value="${atguigu.url}"/>
-    <property name="driverClassName" value="${atguigu.driver}"/>
-    <property name="username" value="${atguigu.username}"/>
-    <property name="password" value="${atguigu.password}"/>
+<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+    <property name="driverClassName" value="${jdbc.driver}" />
+    <property name="url" value="${jdbc.url}" />
+    <property name="username" value="${jdbc.username}" />
+    <property name="password" value="${jdbc.password}" />
 </bean>
 <!-- 配置 JdbcTemplate -->
 <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
     <!-- 装配数据源 -->
-    <property name="dataSource" ref="druidDataSource"/>
+    <property name="dataSource" ref="dataSource" />
 </bean>
 ```
 
@@ -2099,7 +2474,9 @@ jdbc.driver=com.mysql.cj.jdbc.Driver
 
 #### ①在测试类装配 JdbcTemplate
 ```java
+// 指定当前测试类在Spring的测试环境中执行，此时就可以通过注入的方式直接获取IOC容器中的Bean
 @RunWith(SpringJUnit4ClassRunner.class)
+// 设置Spring测试环境的配置文件
 @ContextConfiguration("classpath:spring-jdbc.xml")
 public class JDBCTemplateTest {
     @Autowired
@@ -2110,10 +2487,10 @@ public class JDBCTemplateTest {
 #### ②测试增删改功能
 ```java
 @Test
-//测试增删改功能
-public void testUpdate(){
-    String sql = "insert into t_emp values(null,?,?,?)";
-    int result = jdbcTemplate.update(sql, "张三", 23, "男");
+// 测试增删改功能
+public void testUpdate() {
+    String sql = "insert into t_user values(null,?,?,?,?,?)";
+    int result = jdbcTemplate.update(sql, "root", "123", 23, "女", "123@qq.com");
     System.out.println(result);
 }
 ```
@@ -2121,31 +2498,31 @@ public void testUpdate(){
 #### ③查询一条数据为实体类对象
 ```java
 @Test
-//查询一条数据为一个实体类对象
-public void testSelectEmpById(){
-    String sql = "select * from t_emp where id = ?";
-    Emp emp = jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(Emp.class), 1);
-    System.out.println(emp);
+// 查询一条数据为一个实体类对象
+public void testSelectById() {
+    String sql = "select * from t_user where id = ?";
+    User user = jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(User.class), 1);
+    System.out.println(user);
 }
 ```
 
 #### ④查询多条数据为一个list集合
 ```java
 @Test
-//查询多条数据为一个list集合
-public void testSelectList(){
-    String sql = "select * from t_emp";
-    List<Emp> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Emp.class));
-    list.forEach(emp -> System.out.println(emp));
+// 查询多条数据为一个list集合
+public void testSelectList() {
+    String sql = "select * from t_user";
+    List<User> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
+    list.forEach(u -> System.out.println(u));
 }
 ```
 
 #### ⑤查询单行单列的值
 ```java
 @Test
-//查询单行单列的值
-public void selectCount(){
-    String sql = "select count(id) from t_emp";
+// 查询单行单列的值
+public void testGetCount() {
+    String sql = "select count(*) from t_user";
     Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
     System.out.println(count);
 }
@@ -2194,98 +2571,52 @@ try {
 ### 1、准备工作
 
 #### ①加入依赖
-```xml
-<dependencies>
-    <!-- 基于Maven依赖传递性，导入spring-context依赖即可导入当前所需所有jar包 -->
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-context</artifactId>
-        <version>5.3.1</version>
-    </dependency>
-    <!-- Spring 持久化层支持jar包 -->
-    <!-- Spring 在执行持久化层操作、与持久化层技术进行整合过程中，需要使用orm、jdbc、tx三个jar包 -->
-    <!-- 导入 orm 包就可以通过 Maven 的依赖传递性把其他两个也导入 -->
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-orm</artifactId>
-        <version>5.3.1</version>
-    </dependency>
-    <!-- Spring 测试相关 -->
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-test</artifactId>
-        <version>5.3.1</version>
-    </dependency>
-    <!-- junit测试 -->
-    <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.12</version>
-        <scope>test</scope>
-    </dependency>
-    <!-- MySQL驱动 -->
-    <dependency>
-        <groupId>mysql</groupId>
-        <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.16</version>
-    </dependency>
-    <!-- 数据源 -->
-    <dependency>
-        <groupId>com.alibaba</groupId>
-        <artifactId>druid</artifactId>
-        <version>1.0.31</version>
-    </dependency>
-</dependencies>
-```
-
 #### ②创建jdbc.properties
-```properties
-jdbc.user=root
-jdbc.password=atguigu
-jdbc.url=jdbc:mysql://localhost:3306/ssm?serverTimezone=UTC
-jdbc.driver=com.mysql.cj.jdbc.Driver
-```
-
 #### ③配置Spring的配置文件
 ```xml
 <!--扫描组件-->
-<context:component-scan base-package="com.atguigu.spring.tx.annotation"></context:component-scan>
+<context:component-scan base-package="com.atguigu.spring"></context:component-scan>
 <!-- 导入外部属性文件 -->
 <context:property-placeholder location="classpath:jdbc.properties" />
 <!-- 配置数据源 -->
-<bean id="druidDataSource" class="com.alibaba.druid.pool.DruidDataSource">
-    <property name="url" value="${jdbc.url}"/>
-    <property name="driverClassName" value="${jdbc.driver}"/>
-    <property name="username" value="${jdbc.username}"/>
-    <property name="password" value="${jdbc.password}"/>
+<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+    <property name="driverClassName" value="${jdbc.driver}" />
+    <property name="url" value="${jdbc.url}" />
+    <property name="username" value="${jdbc.username}" />
+    <property name="password" value="${jdbc.password}" />
 </bean>
 <!-- 配置 JdbcTemplate -->
 <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
     <!-- 装配数据源 -->
-    <property name="dataSource" ref="druidDataSource"/>
+    <property name="dataSource" ref="dataSource" />
 </bean>
 ```
 
 #### ④创建表
 ```sql
 CREATE TABLE `t_book` (
-    `book_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `book_name` varchar(20) DEFAULT NULL COMMENT '图书名称',
-    `price` int(11) DEFAULT NULL COMMENT '价格',
-    `stock` int(10) unsigned DEFAULT NULL COMMENT '库存（无符号）',
-    PRIMARY KEY (`book_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+    `book_id` INT ( 11 ) NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `book_name` VARCHAR ( 20 ) DEFAULT NULL COMMENT '图书名称',
+    `price` INT ( 11 ) DEFAULT NULL COMMENT '价格',
+    `stock` INT ( 10 ) UNSIGNED DEFAULT NULL COMMENT '库存（无符号）',
+    PRIMARY KEY ( `book_id` ) 
+) ENGINE = INNODB AUTO_INCREMENT = 3 DEFAULT CHARSET = utf8;
 
-insert into `t_book`(`book_id`,`book_name`,`price`,`stock`) values (1,'斗破苍穹',80,100),(2,'斗罗大陆',50,100);
+INSERT INTO `t_book` ( `book_id`, `book_name`, `price`, `stock` )
+VALUES
+    ( 1, '斗破苍穹', 80, 100 ),
+    ( 2, '斗罗大陆', 50, 100 );
 
 CREATE TABLE `t_user` (
-    `user_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `username` varchar(20) DEFAULT NULL COMMENT '用户名',
-    `balance` int(10) unsigned DEFAULT NULL COMMENT '余额（无符号）',
-    PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+    `user_id` INT ( 11 ) NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `username` VARCHAR ( 20 ) DEFAULT NULL COMMENT '用户名',
+    `balance` INT ( 10 ) UNSIGNED DEFAULT NULL COMMENT '余额（无符号）',
+    PRIMARY KEY ( `user_id` ) 
+) ENGINE = INNODB AUTO_INCREMENT = 2 DEFAULT CHARSET = utf8;
 
-insert into `t_user`(`user_id`,`username`,`balance`) values (1,'admin',50);
+INSERT INTO `t_user` ( `user_id`, `username`, `balance` )
+VALUES
+    ( 1, 'admin', 50 );
 ```
 
 #### ⑤创建组件
@@ -2295,21 +2626,19 @@ insert into `t_user`(`user_id`,`username`,`balance`) values (1,'admin',50);
 public class BookController {
     @Autowired
     private BookService bookService;
-    public void buyBook(Integer bookId, Integer userId){
+
+    public void buyBook(Integer bookId, Integer userId) {
         bookService.buyBook(bookId, userId);
     }
 }
 ```
 
-创建接口BookService：
+创建接口BookService及其实现类实现类BookServiceImpl：
 ```java
 public interface BookService {
     void buyBook(Integer bookId, Integer userId);
 }
-```
 
-创建实现类BookServiceImpl：
-```java
 @Service
 public class BookServiceImpl implements BookService {
     @Autowired
@@ -2326,31 +2655,33 @@ public class BookServiceImpl implements BookService {
 }
 ```
 
-创建接口BookDao：
+创建接口BookDao及其实现类BookDaoImpl：
 ```java
 public interface BookDao {
     Integer getPriceByBookId(Integer bookId);
+
     void updateStock(Integer bookId);
+
     void updateBalance(Integer userId, Integer price);
 }
-```
 
-创建实现类BookDaoImpl：
-```java
 @Repository
 public class BookDaoImpl implements BookDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
     @Override
     public Integer getPriceByBookId(Integer bookId) {
         String sql = "select price from t_book where book_id = ?";
         return jdbcTemplate.queryForObject(sql, Integer.class, bookId);
     }
+
     @Override
     public void updateStock(Integer bookId) {
         String sql = "update t_book set stock = stock - 1 where book_id = ?";
         jdbcTemplate.update(sql, bookId);
     }
+
     @Override
     public void updateBalance(Integer userId, Integer price) {
         String sql = "update t_user set balance = balance - ? where user_id = ?";
@@ -2381,6 +2712,7 @@ public class TxByAnnotationTest {
 用户余额为50，而图书价格为80
 购买图书之后，用户的余额为-30，数据库中余额字段设置了无符号，因此无法将-30插入到余额字段
 此时执行sql语句会抛出SQLException
+> Caused by: com.mysql.cj.jdbc.exceptions.MysqlDataTruncation: Data truncation: BIGINT UNSIGNED value is out of range in '(`ssm`.`t_user`.`balance` - 80)'
 
 #### ③观察结果
 因为没有添加事务，图书的库存更新了，但是用户的余额没有更新
@@ -2413,8 +2745,8 @@ public class TxByAnnotationTest {
 由于使用了Spring的声明式事务，更新库存和更新余额都没有执行
 
 ### 4、@Transactional注解标识的位置
-@Transactional标识在方法上，咋只会影响该方法
-@Transactional标识的类上，咋会影响类中所有的方法
+@Transactional标识在方法上，只会影响该方法
+@Transactional标识的类上，会影响类中所有的方法
 
 ### 5、事务属性：只读
 
@@ -2425,13 +2757,12 @@ public class TxByAnnotationTest {
 ```java
 @Transactional(readOnly = true)
 public void buyBook(Integer bookId, Integer userId) {
-    //查询图书的价格
+    // 查询图书的价格
     Integer price = bookDao.getPriceByBookId(bookId);
-    //更新图书的库存
+    // 更新图书的库存
     bookDao.updateStock(bookId);
-    //更新用户的余额
+    // 更新用户的余额
     bookDao.updateBalance(userId, price);
-    //System.out.println(1/0);
 }
 ```
 
@@ -2455,42 +2786,42 @@ public void buyBook(Integer bookId, Integer userId) {
     } catch (InterruptedException e) {
         e.printStackTrace();
     }
-    //查询图书的价格
+    // 查询图书的价格
     Integer price = bookDao.getPriceByBookId(bookId);
-    //更新图书的库存
+    // 更新图书的库存
     bookDao.updateStock(bookId);
-    //更新用户的余额
+    // 更新用户的余额
     bookDao.updateBalance(userId, price);
-    //System.out.println(1/0);
 }
 ```
 
 #### ③观察结果
 执行过程中抛出异常：
-org.springframework.transaction.TransactionTimedOutException: Transaction timed out: deadline was Fri Jun 04 16:25:39 CST 2022
+org.springframework.transaction.TransactionTimedOutException: Transaction timed out: deadline was Thu Aug 18 12:39:23 CST 2022
 
 ### 7、事务属性：回滚策略
 
 #### ①介绍
-声明式事务默认只针对运行时异常回滚，编译时异常不回滚。
+声明式事务默认只针对运行时异常回滚，编译时异常不回滚，通常就使用这个默认值。
 可以通过@Transactional中相关属性设置回滚策略
 - rollbackFor属性：需要设置一个Class类型的对象
 - rollbackForClassName属性：需要设置一个字符串类型的全类名
 - noRollbackFor属性：需要设置一个Class类型的对象
-- rollbackFor属性：需要设置一个字符串类型的全类名
+- noRollbackForClassName属性：需要设置一个字符串类型的全类名
 
 #### ②使用方式
 ```java
 @Transactional(noRollbackFor = ArithmeticException.class)
-//@Transactional(noRollbackForClassName = "java.lang.ArithmeticException")
+// 该属性为数组类型，不过注解的使用中，如果只为数组赋了单个值{}可以省略
+// @Transactional(noRollbackForClassName = "java.lang.ArithmeticException")
 public void buyBook(Integer bookId, Integer userId) {
-    //查询图书的价格
+    // 查询图书的价格
     Integer price = bookDao.getPriceByBookId(bookId);
-    //更新图书的库存
+    // 更新图书的库存
     bookDao.updateStock(bookId);
-    //更新用户的余额
+    // 更新用户的余额
     bookDao.updateBalance(userId, price);
-    System.out.println(1/0);
+    System.out.println(1 / 0);
 }
 ```
 
@@ -2556,9 +2887,10 @@ public interface CheckoutService {
 public class CheckoutServiceImpl implements CheckoutService {
     @Autowired
     private BookService bookService;
+
     @Override
     @Transactional
-    //一次购买多本图书
+    // 一次购买多本图书
     public void checkout(Integer[] bookIds, Integer userId) {
         for (Integer bookId : bookIds) {
             bookService.buyBook(bookId, userId);
@@ -2571,7 +2903,8 @@ public class CheckoutServiceImpl implements CheckoutService {
 ```java
 @Autowired
 private CheckoutService checkoutService;
-public void checkout(Integer[] bookIds, Integer userId){
+
+public void checkout(Integer[] bookIds, Integer userId) {
     checkoutService.checkout(bookIds, userId);
 }
 ```
@@ -2580,44 +2913,49 @@ public void checkout(Integer[] bookIds, Integer userId){
 
 #### ③观察结果
 可以通过@Transactional中的propagation属性设置事务传播行为
+
 修改BookServiceImpl中buyBook()上，注解@Transactional的propagation属性
-@Transactional(propagation = Propagation.REQUIRED)，默认情况，表示如果当前线程上有已经开启的事务可用，那么就在这个事务中运行。经过观察，购买图书的方法buyBook()在checkout()中被调用，checkout()上有事务注解，因此在此事务中执行。所购买的两本图书的价格为80和50，而用户的余额为100，因此在购买第二本图书时余额不足失败，导致整个checkout()回滚，即只要有一本书买不了，就都买不了
-@Transactional(propagation = Propagation.REQUIRES_NEW)，表示不管当前线程上是否有已经开启的事务，都要开启新事务。同样的场景，每次购买图书都是在buyBook()的事务中执行，因此第一本图书购买成功，事务结束，第二本图书购买失败，只在第二次的buyBook()中回滚，购买第一本图书不受影响，即能买几本就买几本
+
+- `@Transactional(propagation = Propagation.REQUIRED)`，【默认】：表示如果当前线程上有已经开启的事务可用，那么就在这个事务中运行。经过观察，购买图书的方法buyBook()在checkout()中被调用，checkout()上有事务注解，因此在此事务中执行。所购买的两本图书的价格为80和50，而用户的余额为100，因此在购买第二本图书时余额不足失败，导致整个checkout()回滚，即只要有一本书买不了，就都买不了
+- `@Transactional(propagation = Propagation.REQUIRES_NEW)`：表示不管当前线程上是否有已经开启的事务，都要开启新事务。同样的场景，每次购买图书都是在buyBook()的事务中执行，因此第一本图书购买成功，事务结束，第二本图书购买失败，只在第二次的buyBook()中回滚，购买第一本图书不受影响，即能买几本就买几本
 
 
 ## 4、基于XML的声明式事务
 
 ### 1、场景模拟
-参考基于注解的声明式事务
+参考基于注解的声明式事务，将@Transactional注解删除。
 
 ### 2、修改Spring配置文件
-将Spring配置文件中去掉tx:annotation-driven 标签，并添加配置：
+将Spring配置文件中去掉 `tx:annotation-driven` 标签，并添加配置：
 ```xml
-<aop:config>
-    <!-- 配置事务通知和切入点表达式 -->
-    <aop:advisor advice-ref="txAdvice" pointcut="execution(*com.atguigu.spring.tx.xml.service.impl.*.*(..))"></aop:advisor>
-</aop:config>
 <!-- tx:advice标签：配置事务通知 -->
 <!-- id属性：给事务通知标签设置唯一标识，便于引用 -->
 <!-- transaction-manager属性：关联事务管理器 -->
 <tx:advice id="txAdvice" transaction-manager="transactionManager">
     <tx:attributes>
-        <!-- tx:method标签：配置具体的事务方法 -->
-        <!-- name属性：指定方法名，可以使用星号代表多个字符 -->
+        <!-- tx:method标签：
+            属性：
+                name：指定方法名，可以使用星号代表多个字符
+                read-only：设置只读属性
+                rollback-for：设置回滚的异常
+                no-rollback-for：设置不回滚的异常
+                isolation：设置事务的隔离级别
+                timeout：设置事务的超时属性
+                propagation：设置事务的传播行为
+        -->
         <tx:method name="get*" read-only="true" />
         <tx:method name="query*" read-only="true" />
         <tx:method name="find*" read-only="true" />
-        <!-- read-only属性：设置只读属性 -->
-        <!-- rollback-for属性：设置回滚的异常 -->
-        <!-- no-rollback-for属性：设置不回滚的异常 -->
-        <!-- isolation属性：设置事务的隔离级别 -->
-        <!-- timeout属性：设置事务的超时属性 -->
-        <!-- propagation属性：设置事务的传播行为 -->
-        <tx:method name="save*" read-only="false" rollback-for="java.lang.Exception" propagation="REQUIRES_NEW"/>
-            <tx:method name="update*" read-only="false" rollback-for="java.lang.Exception" propagation="REQUIRES_NEW"/>
-                <tx:method name="delete*" read-only="false" rollback-for="java.lang.Exception" propagation="REQUIRES_NEW"/>
+
+        <tx:method name="save*" read-only="false" rollback-for="java.lang.Exception" propagation="REQUIRES_NEW" />
+        <tx:method name="update*" read-only="false" rollback-for="java.lang.Exception" propagation="REQUIRES_NEW" />
+        <tx:method name="delete*" read-only="false" rollback-for="java.lang.Exception" propagation="REQUIRES_NEW" />
     </tx:attributes>
 </tx:advice>
+<aop:config>
+    <!-- 配置事务通知和切入点表达式 -->
+    <aop:advisor advice-ref="txAdvice" pointcut="execution(* com.atguigu.spring.service.impl.*.* (..))"></aop:advisor>
+</aop:config>
 ```
 
 注意：基于xml实现的声明式事务，必须引入aspectJ的依赖
