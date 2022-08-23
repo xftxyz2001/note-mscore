@@ -9,8 +9,10 @@
   - [Spring](Spring.md)
   - [SpringMVC](SpringMVC.md)
   - [SSM整合](SSM整合.md)
+- [SpringBoot2](SpringBoot2.md)
 
 
 ## 参考资料
 - [代码重工-Maven 入门、原理与实战](https://heavy_code_industry.gitee.io/code_heavy_industry/pro002-maven/)
 - [MyBaits-Plus](https://baomidou.com/)
+- [SpringBoot2核心技术与响应式编程](https://www.yuque.com/atguigu/springboot)
