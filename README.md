@@ -10,6 +10,7 @@
   - [SpringMVC](SpringMVC.md)
   - [SSM整合](SSM整合.md)
 - [SpringBoot2](SpringBoot2.md)
+- [SpringCloud](https://www.bilibili.com/video/BV18E411x7eT) [1](https://blog.csdn.net/u011863024/article/details/114298270) [2](https://blog.csdn.net/u011863024/article/details/114298282) [3](https://blog.csdn.net/u011863024/article/details/114298288)
 
 
 ## 参考资料
